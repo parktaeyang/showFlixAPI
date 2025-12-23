@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.showflix.api.schedule.mapper.ScheduleUserMapper">
+
+    <select id="selectFirstUser" resultType="map">
+        SELECT
+            *
+        FROM
+            schedule_users
+        LIMIT 1
+    </select>
+
+</mapper>
+
+
