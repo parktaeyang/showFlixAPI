@@ -2,7 +2,127 @@
  * React 기반 캘린더 컴포넌트
  */
 
-const { useState } = React;
+const { useState, useEffect, useRef } = React;
+
+/**
+ * 사용자 드롭다운 메뉴 컴포넌트
+ */
+function UserDropdown() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [userName, setUserName] = useState('');
+  const dropdownRef = useRef(null);
+
+  // 컴포넌트 마운트 시 사용자 정보 가져오기
+  useEffect(() => {
+    // 세션에서 사용자 정보 확인 (서버에서 제공하는 API가 있다면 사용)
+    // 현재는 세션 정보를 직접 가져올 수 없으므로, 간단한 방법으로 처리
+    fetch('/api/user/info')
+      .then(res => res.json())
+      .then(data => {
+        if (data.isAdmin !== undefined) setIsAdmin(data.isAdmin);
+        if (data.username) setUserName(data.username);
+      })
+      .catch(() => {
+        // API가 없으면 기본값 사용
+        console.log('사용자 정보 API가 없습니다.');
+      });
+  }, []);
+
+  // 외부 클릭 시 드롭다운 닫기
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const toggleDropdown = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const handleLogout = () => {
+    // 로그아웃 처리
+    if (confirm('로그아웃 하시겠습니까?')) {
+      // POST 요청으로 로그아웃
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/logout';
+      document.body.appendChild(form);
+      form.submit();
+    }
+  };
+
+  return React.createElement('div', { 
+    className: 'user-menu-container',
+    ref: dropdownRef
+  },
+    React.createElement('div', { className: 'dropdown' },
+      React.createElement('button', {
+        className: 'btn user-menu-button',
+        type: 'button',
+        id: 'userDropdown',
+        onClick: toggleDropdown,
+        'aria-expanded': isOpen,
+        'aria-label': 'User Menu'
+      },
+        React.createElement('i', { className: 'fas fa-user-circle' })
+      ),
+      isOpen && React.createElement('ul', {
+        className: 'dropdown-menu dropdown-menu-end',
+        'aria-labelledby': 'userDropdown'
+      },
+        isAdmin && React.createElement('li', null,
+          React.createElement('a', {
+            className: 'dropdown-item',
+            href: '/admin'
+          },
+            React.createElement('i', { className: 'fas fa-cogs me-2' }),
+            ' 관리자 페이지'
+          )
+        ),
+        React.createElement('li', null,
+          React.createElement('a', {
+            className: 'dropdown-item',
+            href: '#',
+            onClick: (e) => {
+              e.preventDefault();
+              alert('내 정보 관리 기능은 추후 구현 예정입니다.');
+            }
+          },
+            React.createElement('i', { className: 'fas fa-user-edit me-2' }),
+            ' 내 정보 관리'
+          )
+        ),
+        React.createElement('li', null,
+          React.createElement('hr', { className: 'dropdown-divider' })
+        ),
+        React.createElement('li', null,
+          React.createElement('a', {
+            className: 'dropdown-item',
+            href: '#',
+            onClick: (e) => {
+              e.preventDefault();
+              handleLogout();
+            }
+          },
+            React.createElement('i', { className: 'fas fa-sign-out-alt me-2' }),
+            ' 로그아웃'
+          )
+        )
+      )
+    )
+  );
+}
 
 /**
  * 캘린더 메인 컴포넌트
@@ -130,7 +250,9 @@ function CalendarPage() {
   const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
 
   // React.createElement를 사용하여 JSX 대신 작성
-  return React.createElement('div', { className: 'calendar-container' },
+  return React.createElement(React.Fragment, null,
+    React.createElement(UserDropdown, null),
+    React.createElement('div', { className: 'calendar-container' },
     React.createElement('div', { className: 'calendar' },
       // 캘린더 헤더
       React.createElement('div', { className: 'calendar-header' },
@@ -185,6 +307,7 @@ function CalendarPage() {
       React.createElement('div', { className: 'attendee-empty' },
         '이번 달 출근 예정자가 없습니다.'
       )
+    )
     )
   );
 }

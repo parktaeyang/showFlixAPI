@@ -1,0 +1,115 @@
+/* userMenu.css - React 기반 사용자 드롭다운 메뉴 */
+
+/* 드롭다운 전체를 감싸는 컨테이너 */
+.user-menu-container {
+  position: fixed; /* 화면 우측 상단에 고정 */
+  top: 20px;
+  right: 25px;
+  z-index: 1050; /* 다른 요소들보다 위에 표시 (모달보다 높게) */
+}
+
+/* 드롭다운 컨테이너 */
+.user-menu-container .dropdown {
+  position: relative;
+}
+
+/* 아이콘 드롭다운 버튼 스타일 */
+.user-menu-button {
+  width: 44px; /* 원형 버튼 크기 */
+  height: 44px;
+  border-radius: 50%; /* 완벽한 원 */
+  background: white;
+  color: #6c757d;
+  border: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px; /* 아이콘 크기 */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  padding: 0;
+}
+
+.user-menu-button:hover,
+.user-menu-button:focus {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  color: #667eea;
+  border-color: #667eea;
+  outline: none;
+}
+
+/* 드롭다운 메뉴 스타일 */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: white;
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  padding: 8px 0;
+  min-width: 180px;
+  list-style: none;
+}
+
+.dropdown-menu-end {
+  right: 0;
+  left: auto;
+}
+
+.dropdown-item {
+  display: block;
+  padding: 10px 20px;
+  color: #333;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+
+.dropdown-item:hover {
+  background-color: #f0f2f5;
+  color: #667eea;
+}
+
+.dropdown-item:active {
+  background-color: #667eea;
+  color: white;
+}
+
+.dropdown-item i {
+  width: 20px;
+  margin-right: 8px;
+}
+
+.dropdown-divider {
+  height: 1px;
+  margin: 8px 0;
+  background-color: #e0e0e0;
+  border: none;
+}
+
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+  .user-menu-container {
+    top: 15px;
+    right: 15px;
+  }
+
+  .user-menu-button {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .dropdown-menu {
+    min-width: 160px;
+  }
+}
