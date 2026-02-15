@@ -45,7 +45,7 @@ public class AuthController {
             session.setAttribute("LOGIN_USER_NAME", result.getUsername());
             session.setAttribute("LOGIN_USER_ADMIN", result.isAdmin());
 
-            return ResponseEntity.ok(new LoginResponse("/schedule/calendar"));
+            return ResponseEntity.ok(new LoginResponse("/schedule/calendar.html"));
         } catch (InvalidLoginException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("errorMessage", e.getMessage()));
