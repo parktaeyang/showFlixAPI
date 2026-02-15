@@ -1,8 +1,9 @@
 package com.showflix.api;
 
+import com.showflix.api.auth.infrastructure.security.CustomLoginFailureHandler;
+import com.showflix.api.auth.infrastructure.security.CustomLoginSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -13,17 +14,44 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private final CustomLoginSuccessHandler customLoginSuccessHandler;
+    private final CustomLoginFailureHandler customLoginFailureHandler;
+
+    public SecurityConfig(CustomLoginSuccessHandler customLoginSuccessHandler,
+                         CustomLoginFailureHandler customLoginFailureHandler) {
+        this.customLoginSuccessHandler = customLoginSuccessHandler;
+        this.customLoginFailureHandler = customLoginFailureHandler;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // API 용도로 CSRF 비활성화
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/index.html", "/schedule/**", "/css/**", "/js/**").permitAll()
+                        // 공개 경로
+                        .requestMatchers("/", "/index.html", "/login", "/css/**", "/js/**").permitAll()
                         .requestMatchers("/auth/login").permitAll()
-                        .requestMatchers("/api/**").permitAll() // API는 모두 허용
-                        .anyRequest().permitAll()               // 나머지도 일단 모두 허용(추후 필요시 조정)
+                        // 인증 필요 경로
+                        .requestMatchers("/schedule/**").authenticated()
+                        .requestMatchers("/api/user/info").authenticated()
+                        // 나머지 API는 일단 허용 (추후 필요시 조정)
+                        .requestMatchers("/api/**").permitAll()
+                        .anyRequest().authenticated()
                 )
-                .httpBasic(Customizer.withDefaults());
+                .formLogin(login -> login
+                        .loginPage("/index.html")
+                        .loginProcessingUrl("/auth/login")
+                        .successHandler(customLoginSuccessHandler)
+                        .failureHandler(customLoginFailureHandler)
+                        .permitAll()
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/index.html")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll()
+                );
 
         return http.build();
     }
@@ -32,6 +60,7 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
 }
 
 

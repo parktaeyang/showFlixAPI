@@ -27,10 +27,19 @@ function LoginPage() {
       payload.append('username', username.trim());
       payload.append('password', password.trim());
 
-      const res = await axios.post('/auth/login', payload);
-      const redirectUrl = res.data.redirect || '/schedule/calendar';
+      const res = await axios.post('/auth/login', payload, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      });
+      
+      // 응답 데이터 확인
+      console.log('Login response:', res.data);
+      
+      const redirectUrl = res.data?.redirect || '/schedule/calendar';
       window.location.href = redirectUrl;
     } catch (err) {
+      console.error('Login error:', err);
       const errorMessage =
         err?.response?.data?.errorMessage ||
         '예상치 못한 오류가 발생하였습니다.\n관리자에게 문의해주세요.';

@@ -15,17 +15,21 @@ function UserDropdown() {
 
   // 컴포넌트 마운트 시 사용자 정보 가져오기
   useEffect(() => {
-    // 세션에서 사용자 정보 확인 (서버에서 제공하는 API가 있다면 사용)
-    // 현재는 세션 정보를 직접 가져올 수 없으므로, 간단한 방법으로 처리
     fetch('/api/user/info')
-      .then(res => res.json())
+      .then(res => {
+        if (res.ok) {
+          return res.json();
+        }
+        return null;
+      })
       .then(data => {
-        if (data.isAdmin !== undefined) setIsAdmin(data.isAdmin);
-        if (data.username) setUserName(data.username);
+        if (data) {
+          if (data.admin !== undefined) setIsAdmin(data.admin);
+          if (data.username) setUserName(data.username);
+        }
       })
       .catch(() => {
-        // API가 없으면 기본값 사용
-        console.log('사용자 정보 API가 없습니다.');
+        console.log('사용자 정보를 가져올 수 없습니다.');
       });
   }, []);
 
@@ -130,6 +134,36 @@ function UserDropdown() {
 function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDates, setSelectedDates] = useState(new Set());
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // 인증 상태 확인
+  useEffect(() => {
+    fetch('/api/user/info')
+      .then(res => {
+        if (res.status === 401 || res.status === 403) {
+          // 인증되지 않은 경우 로그인 페이지로 리다이렉트
+          window.location.href = '/index.html';
+          return null;
+        }
+        return res.json();
+      })
+      .then(data => {
+        if (data) {
+          setIsAuthenticated(true);
+        }
+        setIsLoading(false);
+      })
+      .catch(() => {
+        // 에러 발생 시 로그인 페이지로 리다이렉트
+        window.location.href = '/index.html';
+      });
+  }, []);
+
+  // 로딩 중이거나 인증되지 않은 경우 아무것도 렌더링하지 않음
+  if (isLoading || !isAuthenticated) {
+    return null;
+  }
 
   // 현재 년월 추출
   const year = currentDate.getFullYear();
