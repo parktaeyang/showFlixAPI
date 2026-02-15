@@ -1,0 +1,328 @@
+.schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    table-layout: fixed;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(107, 70, 193, 0.1);
+}
+
+.schedule-table th,
+.schedule-table td {
+    border: 1px solid #e8e4ff;
+    padding: 6px 4px;
+    text-align: center;
+    vertical-align: middle;
+    min-width: 45px;
+    max-width: 45px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11px;
+    transition: all 0.2s ease;
+}
+
+.schedule-table th,
+.schedule-table td:hover {
+    background: rgba(248, 245, 255, 0.8);
+    transform: scale(1.01);
+}
+
+/* 배우 이름 열 스타일 */
+.actor-column {
+    min-width: 60px !important;
+    max-width: 80px !important;
+    font-size: 10px;
+    background: rgba(248, 245, 255, 0.6) !important;
+}
+
+/* 특이사항 열 스타일 */
+.remarks-column {
+    min-width: 120px !important;
+    max-width: 150px !important;
+    text-align: left !important;
+    background: rgba(248, 245, 255, 0.4) !important;
+}
+
+/* 합계 열 스타일 */
+.total-column-header {
+    min-width: 60px !important;
+    max-width: 80px !important;
+    background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%) !important;
+    color: #8b5cf6 !important;
+    font-weight: bold !important;
+}
+
+/* 합계 행 스타일 강화 */
+.total-row {
+    background: linear-gradient(135deg, #e8f4fd 0%, #dbeafe 100%) !important;
+    font-weight: bold;
+    color: #3b82f6;
+}
+
+.total-row td {
+    background: linear-gradient(135deg, #e8f4fd 0%, #dbeafe 100%) !important;
+    font-weight: bold !important;
+    color: #3b82f6 !important;
+    border: 2px solid #3b82f6 !important;
+}
+
+.total-column {
+    background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%) !important;
+    font-weight: bold;
+    color: #8b5cf6;
+    border: 2px solid #8b5cf6 !important;
+}
+
+.grand-total-cell {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%) !important;
+    color: #dc2626 !important;
+    font-weight: bold !important;
+    border: 2px solid #dc2626 !important;
+    font-size: 12px !important;
+}
+
+.schedule-table th {
+    background: linear-gradient(135deg, #f8f5ff 0%, #f0f0ff 100%);
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(107, 70, 193, 0.1);
+    font-size: 11px;
+    color: #6b46c1;
+    border-bottom: 2px solid #e8e4ff;
+}
+
+.schedule-table th:first-child,
+.schedule-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 15;
+    background: linear-gradient(135deg, #f0f0ff 0%, #e8e4ff 100%);
+    font-weight: bold;
+    min-width: 70px;
+    max-width: 70px;
+    box-shadow: 2px 0 8px rgba(107, 70, 193, 0.1);
+    text-align: left;
+    padding-left: 10px;
+    border-right: 2px solid #e8e4ff;
+}
+
+.schedule-input {
+    width: 100%;
+    max-width: 35px;
+    text-align: center;
+    border: 2px solid #e8e4ff;
+    padding: 2px;
+    font-size: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    box-sizing: border-box;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.schedule-input:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+    background-color: white;
+}
+
+.remarks-input {
+    width: 100%;
+    max-width: 140px;
+    border: 2px solid #e8e4ff;
+    padding: 4px 6px;
+    font-size: 10px;
+    box-sizing: border-box;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s ease;
+}
+
+.remarks-input:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+    background: white;
+}
+
+.weekend {
+    background: linear-gradient(135deg, #fef7ff 0%, #f3e8ff 100%);
+    border: 1px solid #e8e4ff;
+}
+
+.schedule-table tr:nth-child(even) {
+    background-color: rgba(248, 245, 255, 0.3);
+}
+
+.schedule-table tr:hover {
+    background-color: rgba(248, 245, 255, 0.6) !important;
+}
+
+.table-container {
+    max-height: 500px;
+    overflow: auto;
+    border: 2px solid #e8e4ff;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(107, 70, 193, 0.1);
+    background: rgba(255, 255, 255, 0.9);
+}
+
+/* 테이블 반응형 처리 */
+@media (max-width: 768px) {
+    .schedule-table {
+        font-size: 11px;
+        border-radius: 8px;
+    }
+
+    .schedule-table th,
+    .schedule-table td {
+        padding: 4px 3px;
+        min-width: 35px;
+    }
+
+    .schedule-input {
+        max-width: 35px;
+        font-size: 10px;
+        border-width: 1px;
+    }
+
+    .remarks-input {
+        max-width: 80px;
+        font-size: 10px;
+        border-width: 1px;
+    }
+}
+
+.summary-card {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 32px rgba(107, 70, 193, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.summary-item {
+    background: linear-gradient(135deg, #f8f5ff 0%, #f0f0ff 100%);
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid rgba(139, 92, 246, 0.1);
+    transition: all 0.3s ease;
+}
+
+.summary-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(107, 70, 193, 0.15);
+}
+
+.summary-number {
+    font-size: 22px;
+    font-weight: bold;
+    color: #8b5cf6;
+    text-shadow: 0 2px 4px rgba(139, 92, 246, 0.1);
+}
+
+.summary-label {
+    font-size: 12px;
+    color: #6b46c1;
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+.btn-save-all {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-right: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}
+
+.btn-save-all:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+}
+
+.btn-export {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.btn-export:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.btn-export:hover {
+    background-color: #218838;
+}
+
+.content-header h1 {
+    font-size: 26px;
+    margin-bottom: 10px;
+    color: #6b46c1;
+    text-shadow: 0 2px 4px rgba(107, 70, 193, 0.1);
+}
+
+.content-header p {
+    font-size: 14px;
+    color: #8b5cf6;
+    margin-bottom: 25px;
+    font-weight: 500;
+}
+
+.schedule-table td.date-cell {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    font-weight: 500;
+    border: 1px solid #bae6fd;
+}
+
+.schedule-table td.weekend {
+    background: linear-gradient(135deg, #fef7ff 0%, #f3e8ff 100%);
+    border: 1px solid #e8e4ff;
+}
+
+.schedule-input:hover {
+    background: rgba(248, 245, 255, 0.8);
+    border-color: #8b5cf6;
+}
+
+.schedule-table tr:hover {
+    background-color: rgba(248, 245, 255, 0.8);
+    box-shadow: inset 0 0 8px rgba(107, 70, 193, 0.1);
+}
+
+.btn-save-all, .btn-export {
+    padding: 10px 20px;
+    font-size: 13px;
+    border-radius: 25px;
+} 

@@ -1,0 +1,72 @@
+/* userMenu.css */
+
+/* 드롭다운 전체를 감싸는 컨테이너 */
+.user-menu-container {
+    position: fixed; /* 화면 우측 상단에 고정 */
+    top: 20px;
+    right: 25px;
+    z-index: 1050; /* 다른 요소들보다 위에 표시 (모달보다 높게) */
+}
+
+/* 아이콘 드롭다운 버튼 스타일 */
+.user-menu-button {
+    width: 44px; /* 원형 버튼 크기 */
+    height: 44px;
+    border-radius: 50%; /* 완벽한 원 */
+    background: white;
+    color: #6c757d;
+    border: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px; /* 아이콘 크기 */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.user-menu-button:hover, .user-menu-button:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    color: #667eea;
+    border-color: #667eea;
+}
+
+/* Bootstrap 드롭다운 화살표 숨기기 */
+.user-menu-button::after {
+    display: none;
+}
+
+/* 드롭다운 메뉴 스타일 */
+.dropdown-menu {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    padding-top: 8px;
+    padding-bottom: 8px;
+    min-width: 180px;
+}
+
+.dropdown-item {
+    padding: 10px 20px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: #f0f2f5;
+    color: #667eea;
+}
+
+.dropdown-item:active {
+    background-color: #667eea;
+    color: white;
+}
+
+.dropdown-item i {
+    width: 20px;
+}
+
+/* '내 정보 관리' 모달(userInfoChgModal) 관련 스타일 오버라이드 */
+#myInfoTabContent {
+    min-height: 350px !important;
+}

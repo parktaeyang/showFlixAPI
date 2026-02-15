@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/layouts/adminLayout :: admin-layout('계정 관리', 'account')}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="stylesheet" href="/css/accountManagement.css">
+</head>
+<body>
+    <!-- 콘텐츠 영역 -->
+    <div th:fragment="content">
+        <div class="content-header">
+            <h1>👥 계정 관리</h1>
+            <p>새로운 사용자 계정을 생성하고 기존 계정을 관리합니다.</p>
+        </div>
+
+        <!-- 계정 생성 폼 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>새 계정 생성</h5>
+            </div>
+            <div class="card-body">
+                <form id="createAccountForm">
+                    <div class="row g-3">
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="mb-3">
+                                <label for="accountType" class="form-label">계정유형 *</label>
+                                <select class="form-select" id="accountType" name="accountType" required>
+                                    <option value="">계정유형 선택</option>
+                                    <option value="ACTOR">배우</option>
+                                    <option value="STAFF">스텝</option>
+                                    <option value="CAPTAIN">캡틴</option>
+                                    <option value="ADMIN">관리자</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="mb-3">
+                                <label for="role" class="form-label">역할</label>
+                                <select class="form-select" id="role" name="role">
+                                    <option value="">역할 선택</option>
+                                </select>
+                                <small class="form-text text-muted">배우/스텝일 경우 역할을 선택하세요.</small>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="mb-3">
+                                <label for="userid" class="form-label">아이디</label>
+                                <input type="text" class="form-control" id="userid" name="userid" readonly>
+                                <small class="form-text text-muted">계정유형 선택 시 자동 생성됩니다.</small>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">이름 *</label>
+                                <input type="text" class="form-control" id="username" name="username" 
+                                       maxlength="20"
+                                       pattern="[가-힣a-zA-Z\s]{1,20}" required
+                                       inputmode="text" autocomplete="off" spellcheck="false">
+                                <small class="form-text text-muted">한글, 영문, 공백만 입력 가능 (최대 20자)</small>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="mb-3">
+                                <label for="phoneNumber" class="form-label">핸드폰번호 *</label>
+                                <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" 
+                                       placeholder="01012345678" maxlength="13" 
+                                       oninput="this.value = this.value.replace(/[^0-9]/g, '')" 
+                                       pattern="[0-9]{10,13}" required>
+                                <small class="form-text text-muted">숫자만 입력 가능 (최대 13자리)</small>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="mb-3">
+                                <label for="password" class="form-label">비밀번호</label>
+                                <input type="text" class="form-control" id="password" name="password" 
+                                       value="showflix" readonly>
+                                <small class="form-text text-muted">
+                                    기본 비밀번호는 "showflix"입니다. 사용자가 로그인 후 변경해야 합니다.
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-6">
+                            <div class="mb-3">
+                                <label class="form-label">&nbsp;</label>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary btn-lg">계정 생성</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 기존 계정 목록 -->
+        <div class="card">
+            <div class="card-header">
+                <h5>기존 계정 목록</h5>
+            </div>
+            <div class="card-body">
+                <!-- 필터링 옵션 -->
+                <div class="row g-3 mb-3">
+                    <div class="col-12 col-sm-6">
+                        <label for="filterAccountType" class="form-label">계정유형 필터</label>
+                        <select class="form-select" id="filterAccountType" onchange="filterUsers()">
+                            <option value="">전체 보기</option>
+                            <option value="ACTOR">배우</option>
+                            <option value="STAFF">스텝</option>
+                            <option value="CAPTAIN">캡틴</option>
+                            <option value="ADMIN">관리자</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid">
+                            <button class="btn btn-outline-secondary" onclick="clearFilter()">
+                                <i class="fas fa-times"></i> 필터 초기화
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>아이디</th>
+                                <th>이름</th>
+                                <th>핸드폰번호</th>
+                                <th>계정유형</th>
+                                <th>역할</th>
+                                <th>생성일</th>
+                                <th>비밀번호 초기화</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <!-- JavaScript로 동적 생성 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 스크립트 영역 -->
+    <div th:fragment="scripts">
+        <script src="/js/accountManagement.js"></script>
+    </div>
+</body>
+</html> 

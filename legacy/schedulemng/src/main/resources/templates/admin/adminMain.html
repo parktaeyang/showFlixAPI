@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/layouts/adminLayout :: admin-layout('관리자 대시보드', 'dashboard')}">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <!-- 콘텐츠 영역 -->
+    <div th:fragment="content">
+        <div class="content-header">
+            <h1>관리자 대시보드</h1>
+            <p>스케줄 관리 시스템 관리자 페이지입니다.</p>
+        </div>
+
+        <div class="dashboard-cards">
+            <div class="row g-4">
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">👥 계정 관리</h5>
+                            <p class="card-text flex-grow-1">새로운 사용자 계정을 생성하고 기존 계정을 관리합니다.</p>
+                            <a href="/admin/account" class="btn btn-primary mt-auto">계정 관리</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">📊 스케줄 관리</h5>
+                            <p class="card-text flex-grow-1">월별 배우 스케줄을 관리하고 시간을 입력/수정할 수 있습니다.</p>
+                            <a href="/admin/schedule-management" class="btn btn-primary mt-auto">스케줄 관리</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">📅 캘린더</h5>
+                            <p class="card-text flex-grow-1">일반 캘린더 페이지로 이동합니다.</p>
+                            <a href="/schedule/calendar" class="btn btn-secondary mt-auto">캘린더 보기</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="quick-stats">
+            <h3>📈 빠른 통계</h3>
+            <div class="row g-4">
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalUsers">-</div>
+                        <div class="stat-label">전체 사용자</div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalSchedules">-</div>
+                        <div class="stat-label">전체 일정</div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="stat-item">
+                        <div class="stat-number" id="thisMonthSelections">-</div>
+                        <div class="stat-label">이번 달 선택</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 스크립트 영역 -->
+    <div th:fragment="scripts">
+        <script>
+            // 대시보드 전용 스크립트
+            document.addEventListener('DOMContentLoaded', function() {
+                loadDashboardStats();
+            });
+        </script>
+    </div>
+</body>
+</html> 

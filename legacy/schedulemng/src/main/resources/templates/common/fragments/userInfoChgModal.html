@@ -1,0 +1,81 @@
+<!-- templates/common/fragments/userInfoChgModal.html -->
+<div th:fragment="user-info-chg-modal" class="modal fade" id="userInfoChgModal" tabindex="-1" aria-labelledby="userInfoChgModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userInfoChgModalLabel"><i class="fas fa-user-cog me-2"></i>내 정보 관리</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- 탭 메뉴 -->
+                <ul class="nav nav-tabs" id="myInfoTab" role="tablist">
+                     <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="my-info-tab" data-bs-toggle="tab" data-bs-target="#my-info-pane" type="button" role="tab">내 정보</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact-pane" type="button" role="tab">연락처 변경</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="password-tab" data-bs-toggle="tab" data-bs-target="#password-pane" type="button" role="tab">비밀번호 변경</button>
+                    </li>
+                </ul>
+
+                <!-- 탭 콘텐츠 -->
+                <div class="tab-content pt-3" id="myInfoTabContent">
+                    <!-- 내 정보 탭 (조회 전용) -->
+                    <div class="tab-pane fade show active" id="my-info-pane" role="tabpanel">
+                        <div class="mb-3">
+                            <label for="infoUserId" class="form-label">아이디</label>
+                            <input type="text" class="form-control" id="infoUserId" th:value="${session.userId}" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="infoUserName" class="form-label">이름</label>
+                            <input type="text" class="form-control" id="infoUserName" th:value="${session.username}" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="infoAccountType" class="form-label">계정 유형</label>
+                            <input type="text" class="form-control" id="infoAccountType" th:value="${session.accountType}" readonly>
+                        </div>
+                        <p class="help-text">내 정보는 변경이 불가능합니다.<br>변경 필요시 관리자에게 문의해주세요.</p>
+                    </div>
+
+                    <!-- 연락처 변경 탭 -->
+                    <div class="tab-pane fade" id="contact-pane" role="tabpanel">
+                        <form id="contactForm" onsubmit="return false;">
+                            <div class="mb-3">
+                                <label for="phoneNumber" class="form-label">연락처</label>
+                                <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" placeholder="010-1234-5678" th:value="${session.phoneNumber}">
+                            </div>
+                            <div id="contactError" class="alert alert-danger d-none mt-3" role="alert"></div>
+                            <div class="text-end">
+                                <button type="button" class="btn btn-primary" id="saveContactBtn">연락처 저장</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- 비밀번호 변경 탭 -->
+                    <div class="tab-pane fade" id="password-pane" role="tabpanel">
+                        <form id="passwordForm" onsubmit="return false;">
+                            <div class="mb-3">
+                                <label for="currentPassword" class="form-label">현재 비밀번호</label>
+                                <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="newPassword" class="form-label">새 비밀번호</label>
+                                <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">새 비밀번호 확인</label>
+                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                            </div>
+                            <div id="passwordError" class="alert alert-danger d-none mt-3" role="alert"></div>
+                            <div class="text-end">
+                                <button type="button" class="btn btn-primary" id="savePasswordBtn">비밀번호 변경</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

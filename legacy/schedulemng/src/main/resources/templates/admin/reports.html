@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/layouts/adminLayout :: admin-layout('통계 리포트', 'reports')}">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <!-- 콘텐츠 영역 -->
+    <div th:fragment="content">
+        <div class="content-header">
+            <h1>📊 통계 리포트</h1>
+            <p>시스템 통계와 리포트를 확인합니다.</p>
+        </div>
+
+        <!-- 리포트 필터 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>리포트 필터</h5>
+            </div>
+            <div class="card-body">
+                <form id="reportFilterForm">
+                    <div class="row g-3">
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="mb-3">
+                                <label for="reportType" class="form-label">리포트 유형</label>
+                                <select class="form-select" id="reportType" name="reportType">
+                                    <option value="">리포트 유형 선택</option>
+                                    <option value="user">사용자 통계</option>
+                                    <option value="schedule">스케줄 통계</option>
+                                    <option value="activity">활동 통계</option>
+                                    <option value="performance">성능 통계</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="mb-3">
+                                <label for="reportPeriod" class="form-label">기간</label>
+                                <select class="form-select" id="reportPeriod" name="reportPeriod">
+                                    <option value="daily">일간</option>
+                                    <option value="weekly">주간</option>
+                                    <option value="monthly" selected>월간</option>
+                                    <option value="yearly">연간</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="mb-3">
+                                <label for="startDate" class="form-label">시작일</label>
+                                <input type="date" class="form-control" id="startDate" name="startDate">
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="mb-3">
+                                <label for="endDate" class="form-label">종료일</label>
+                                <input type="date" class="form-control" id="endDate" name="endDate">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary me-2">리포트 생성</button>
+                            <button type="button" class="btn btn-secondary" onclick="exportReport()">내보내기</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 리포트 미리보기 -->
+        <div class="card">
+            <div class="card-header">
+                <div class="row g-3 align-items-center">
+                    <div class="col-12 col-sm-6 col-lg-8">
+                        <h5 class="mb-0">리포트 미리보기</h5>
+                    </div>
+                    <div class="col-12 col-sm-6 col-lg-4">
+                        <div class="d-grid gap-2 d-sm-flex">
+                            <button class="btn btn-sm btn-outline-primary" onclick="refreshReport()">새로고침</button>
+                            <button class="btn btn-sm btn-outline-success" onclick="saveReport()">저장</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-12 col-lg-6">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6>차트</h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="chartContainer" style="height: 300px; background-color: #f8f9fa; display: flex; align-items: center; justify-content: center;">
+                                    <p class="text-muted">차트가 여기에 표시됩니다</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-6">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6>요약</h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="summaryContainer">
+                                    <p class="text-muted">리포트 요약이 여기에 표시됩니다</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 스크립트 영역 -->
+    <div th:fragment="scripts">
+        <script>
+            // 통계 리포트 전용 스크립트
+            document.addEventListener('DOMContentLoaded', function() {
+                // 서비스 준비중인 경우 알럿 표시 후 대시보드로 리다이렉트
+                if ([[${serviceNotReady}]]) {
+                    showAlert('서비스 준비중입니다.', 'warning');
+                    setTimeout(() => {
+                        window.location.href = '/admin';
+                    }, 2000);
+                    return;
+                }
+                
+                setupReports();
+            });
+
+            function setupReports() {
+                // 리포트 필터 폼 설정
+                const reportFilterForm = document.getElementById('reportFilterForm');
+                if (reportFilterForm) {
+                    reportFilterForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        showAlert('리포트 생성 기능은 준비중입니다.', 'info');
+                    });
+                }
+            }
+
+            function exportReport() {
+                showAlert('리포트 내보내기 기능은 준비중입니다.', 'info');
+            }
+
+            function refreshReport() {
+                showAlert('리포트 새로고침 기능은 준비중입니다.', 'info');
+            }
+
+            function saveReport() {
+                showAlert('리포트 저장 기능은 준비중입니다.', 'info');
+            }
+        </script>
+    </div>
+</body>
+</html> 

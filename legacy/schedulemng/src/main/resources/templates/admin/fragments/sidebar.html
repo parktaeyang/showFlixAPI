@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <!-- 관리자 사이드바 Fragment -->
+    <div th:fragment="admin-sidebar(activePage)" class="sidebar">
+        <!-- 모바일 토글 버튼 -->
+        <div class="sidebar-toggle d-lg-none" style="display: none;">
+            <button class="btn btn-outline-secondary" type="button" onclick="toggleSidebar()" 
+                    style="position: fixed; top: 20px; left: 20px; z-index: 1001; background: white; border: 1px solid #ccc; border-radius: 8px; padding: 10px 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); font-weight: bold; color: #333;">
+                ☰ 메뉴
+            </button>
+        </div>
+        
+        <div class="sidebar-content">
+            <div class="sidebar-header">
+                <h3 class="sidebar-title">관리자</h3>
+                <p class="sidebar-subtitle">관리자</p>
+                <!-- 모바일 닫기 버튼 -->
+                <button class="sidebar-close d-lg-none" onclick="toggleSidebar()" 
+                        style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 24px; cursor: pointer; z-index: 1001;">
+                    ✕
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <ul class="sidebar-menu">
+                    <!-- 대시보드 -->
+                    <li class="sidebar-item">
+                        <a href="/admin" th:class="${activePage == 'dashboard'} ? 'active' : ''" class="sidebar-link">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>대시보드</span>
+                        </a>
+                    </li>
+                    
+                    <!-- 사용자 관리 -->
+                    <li class="sidebar-item">
+                        <a href="/admin/account" th:class="${activePage == 'account'} ? 'active' : ''" class="sidebar-link">
+                            <i class="fas fa-users"></i>
+                            <span>계정 관리</span>
+                        </a>
+                    </li>
+
+                    <!-- 스케줄 관리 -->
+                    <li class="sidebar-item">
+                        <a href="/admin/schedule-management" th:class="${activePage == 'schedule-management'} ? 'active' : ''" class="sidebar-link">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>스케줄 관리</span>
+                        </a>
+                    </li>
+
+                    <!-- 특수예약 관리 -->
+                    <li class="sidebar-item">
+                        <a href="/admin/schedule-special" th:class="${activePage == 'schedule-special'} ? 'active' : ''" class="sidebar-link">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>특수예약 관리</span>
+                        </a>
+                    </li>
+                    
+                    <!-- 스케줄 집계 -->
+                    <li class="sidebar-item">
+                        <a href="javascript:void(0)" onclick="showServiceMaintenanceAlert('스케줄 집계')" th:class="${activePage == 'schedule-summary'} ? 'active' : ''" class="sidebar-link">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>스케줄 집계</span>
+                        </a>
+                    </li>
+
+                    <!-- 업무 일지 -->
+                    <li class="sidebar-item">
+                        <a href="/admin/work-log" th:class="${activePage == 'work-log'} ? 'active' : ''" class="sidebar-link">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>업무 일지</span>
+                        </a>
+                    </li>
+                    
+                    <!-- 시스템 설정 (향후 확장용) -->
+                    <li class="sidebar-item">
+                        <a href="javascript:void(0)" onclick="showServiceMaintenanceAlert('시스템 설정')" th:class="${activePage == 'settings'} ? 'active' : ''" class="sidebar-link">
+                            <i class="fas fa-cog"></i>
+                            <span>시스템 설정</span>
+                        </a>
+                    </li>
+                    
+                    <!-- 로그 관리 (향후 확장용) -->
+                    <li class="sidebar-item">
+                        <a href="javascript:void(0)" onclick="showServiceMaintenanceAlert('로그 관리')" th:class="${activePage == 'logs'} ? 'active' : ''" class="sidebar-link">
+                            <i class="fas fa-file-alt"></i>
+                            <span>로그 관리</span>
+                        </a>
+                    </li>
+                    
+                    <!-- 통계 리포트 (향후 확장용) -->
+                    <li class="sidebar-item">
+                        <a href="javascript:void(0)" onclick="showServiceMaintenanceAlert('통계 리포트')" th:class="${activePage == 'reports'} ? 'active' : ''" class="sidebar-link">
+                            <i class="fas fa-chart-line"></i>
+                            <span>통계 리포트</span>
+                        </a>
+                    </li>
+                    
+                    <!-- 구분선 -->
+                    <li class="sidebar-divider"></li>
+                    
+                    <!-- 일반 페이지로 이동 -->
+                    <li class="sidebar-item">
+                        <a href="/schedule/calendar" th:class="${activePage == 'calendar'} ? 'active' : ''" class="sidebar-link">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>캘린더로 돌아가기</span>
+                        </a>
+                    </li>
+                    
+                    <!-- 로그아웃 -->
+                    <li class="sidebar-item">
+                        <form action="/logout" method="post" class="logout-form">
+                            <button type="submit" class="sidebar-link logout-link">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>로그아웃</span>
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</body>
+</html> 

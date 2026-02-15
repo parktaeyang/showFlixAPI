@@ -1,0 +1,1487 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(135deg, #f8f5ff 0%, #f0f0ff 100%);
+}
+
+.calendar {
+    max-width: 1200px;
+    width: 95%;
+    margin: 0 auto;
+    padding-top: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 8px 32px rgba(149, 157, 165, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 20px 0;
+    border-bottom: 2px solid #e8e4ff;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 15px;
+    padding: 20px;
+}
+
+#monthYear {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #6b46c1;
+    text-shadow: 0 2px 4px rgba(107, 70, 193, 0.1);
+}
+
+/* 캘린더 테이블 기본 스타일 */
+.calendar table,
+.calendar-wrapper table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    table-layout: fixed !important;
+    background: transparent;
+    border: 2px solid #e8e4ff;
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* 테이블 헤더 */
+.calendar table th,
+.calendar-wrapper table th {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    padding: 15px 8px !important;
+    border: 1px solid #e8e4ff !important;
+    text-align: center !important;
+    font-size: 14px !important;
+    width: 14.285% !important; /* 100% / 7 = 14.285% */
+    min-width: 120px !important;
+    max-width: 14.285% !important;
+    box-sizing: border-box !important;
+}
+
+/* 테이블 셀 */
+.calendar table td,
+.calendar-wrapper table td {
+    border: 1px solid #e8e4ff !important;
+    height: auto !important; /* 내용에 따라 자동 조정 */
+    min-height: 120px !important; /* 최소 높이 보장 */
+    width: 14.285% !important; /* 100% / 7 = 14.285% */
+    min-width: 120px !important;
+    max-width: 14.285% !important;
+    vertical-align: top !important;
+    padding: 8px !important;
+    position: relative !important;
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    transition: all 0.3s ease !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+}
+
+/* 테이블 셀 호버 효과 */
+td:hover {
+    background-color: rgba(248, 245, 255, 0.9);
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(107, 70, 193, 0.1);
+}
+
+/* 테이블 헤더 호버 효과 */
+th:hover {
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+    transform: scale(1.01);
+}
+
+.today {
+    background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+    border: 2px solid #8b5cf6;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+}
+
+.checkbox-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 8px;
+    padding: 4px;
+    background: rgba(139, 92, 246, 0.05);
+    border-radius: 6px;
+}
+
+/* 체크박스 스타일링 */
+.date-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: #8b5cf6;
+    cursor: pointer;
+    transform: scale(1.2);
+}
+
+.date-checkbox:checked {
+    animation: checkboxPop 0.2s ease-in-out;
+}
+
+@keyframes checkboxPop {
+    0% { transform: scale(1.2); }
+    50% { transform: scale(1.4); }
+    100% { transform: scale(1.2); }
+}
+
+.open-label {
+    font-size: 12px;
+    margin-top: 4px;
+    color: #6b46c1;
+    font-weight: 500;
+}
+
+/* 일반 버튼 스타일 */
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    margin-top: 16px;
+    cursor: pointer;
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+}
+
+/* 캘린더 헤더 버튼 특별 스타일 */
+.calendar-header button {
+    margin-top: 0;
+    padding: 12px 24px;
+    font-size: 14px;
+    background: linear-gradient(135deg, #7c3aed 0%, #6b46c1 100%);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+}
+
+.calendar-header button:hover {
+    background: linear-gradient(135deg, #6b46c1 0%, #5b35b1 100%);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+}
+
+/* 저장 버튼 특별 스타일 */
+.save-btn {
+    margin-top: 20px !important;
+    padding: 15px 30px !important;
+    font-size: 16px !important;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3) !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
+}
+
+.save-btn:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4) !important;
+}
+
+/* 확정 버튼 특별 스타일 */
+.confirm-modal-btn {
+    margin-top: 10px !important;
+    padding: 12px 24px !important;
+    font-size: 14px !important;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+    color: white !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 25px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3) !important;
+    transition: all 0.3s ease !important;
+    letter-spacing: 0.5px !important;
+}
+
+.confirm-modal-btn:hover {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4) !important;
+}
+
+.confirm-modal-btn:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 10px rgba(34, 197, 94, 0.2) !important;
+}
+
+/* 확정 취소 버튼 특별 스타일 */
+.unconfirm-modal-btn {
+    margin-top: 10px !important;
+    padding: 12px 24px !important;
+    font-size: 14px !important;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    color: white !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 25px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3) !important;
+    transition: all 0.3s ease !important;
+    letter-spacing: 0.5px !important;
+}
+
+.unconfirm-modal-btn:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4) !important;
+}
+
+.unconfirm-modal-btn:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 10px rgba(239, 68, 68, 0.2) !important;
+}
+
+/* 확정 상태 표시 */
+.confirm-status {
+    text-align: center;
+    margin: 15px 0;
+    padding: 10px;
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    border: 2px solid #22c55e;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.1);
+}
+
+.confirm-badge {
+    font-size: 16px;
+    font-weight: 700;
+    color: #15803d;
+    text-shadow: 0 1px 2px rgba(21, 128, 61, 0.1);
+}
+
+/* 모달 배경 (overlay) */
+/* 모달 배경 (overlay) */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(107, 70, 193, 0.3);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overscroll-behavior: contain;
+}
+
+/* 모달 본문 */
+.modal-content {
+    width: min(900px, 95vw);
+    max-height: 90vh;
+    overflow: auto;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(107, 70, 193, 0.2);
+    padding: 25px;
+    border: 1px solid rgba(139, 92, 246, 0.1);
+    backdrop-filter: blur(20px);
+}
+
+/* 닫기 버튼 */
+.close-modal-btn {
+    margin-top: 10px;
+}
+
+/* 관리자 버튼 스타일 */
+.admin-btn {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+    transition: all 0.3s ease;
+    min-width: 140px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.admin-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+}
+
+.admin-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(139, 92, 246, 0.2);
+}
+
+.scroll-box {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 2px solid #e8e4ff;
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: inset 0 2px 8px rgba(107, 70, 193, 0.1);
+}
+
+/* 모든 테이블 셀에 적용 */
+#divTimeTable table th,
+#divTimeTable table td {
+    height: 40px;       /* 원하는 높이로 조절 (예: 40px) */
+    padding: 6px 10px;    /* 상하/좌우 패딩 */
+    vertical-align: middle; /* 텍스트 수직 정렬 (top, middle, bottom 가능) */
+    border: 1px solid #e8e4ff; /* 테두리 유지 */
+    background: rgba(255, 255, 255, 0.9);
+    transition: all 0.2s ease;
+}
+
+#divTimeTable table th,
+#divTimeTable table td:hover {
+    background: rgba(248, 245, 255, 0.95);
+    transform: scale(1.01);
+}
+
+/* 로그아웃 버튼 */
+.logout-btn {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    transition: all 0.3s ease;
+    min-width: 140px;
+}
+
+.help-text {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: #6c757d;
+    text-align: center;
+    white-space: nowrap;
+}
+.logout-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+.logout-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(239, 68, 68, 0.2);
+}
+
+#divAdminMonthlyAttendeeArea {
+    width: 80%;
+    margin: 30px auto 0;
+}
+
+.admin-attendee-container {
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #e8e4ff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 8px 24px rgba(107, 70, 193, 0.1);
+}
+
+.admin-attendee-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.admin-attendee-header h3 {
+    margin: 0;
+    font-size: 20px;
+    color: #6b46c1;
+}
+
+.admin-attendee-month {
+    font-size: 14px;
+    color: #7c3aed;
+    background: rgba(139, 92, 246, 0.1);
+    padding: 6px 12px;
+    border-radius: 999px;
+}
+
+.admin-attendee-count {
+    margin-left: auto;
+    font-size: 14px;
+    color: #4c1d95;
+    font-weight: 600;
+}
+
+.admin-attendee-scroll {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.admin-attendee-scroll::-webkit-scrollbar {
+    height: 8px;
+}
+
+.admin-attendee-scroll::-webkit-scrollbar-track {
+    background: rgba(124, 58, 237, 0.08);
+    border-radius: 999px;
+}
+
+.admin-attendee-scroll::-webkit-scrollbar-thumb {
+    background: rgba(124, 58, 237, 0.35);
+    border-radius: 999px;
+}
+
+.admin-attendee-card {
+    flex: 0 0 180px;
+    min-height: 90px;
+    background: rgba(139, 92, 246, 0.08);
+    border: 1px solid rgba(124, 58, 237, 0.2);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 6px 18px rgba(124, 58, 237, 0.15);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-attendee-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(124, 58, 237, 0.25);
+}
+
+.admin-attendee-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #4c1d95;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-attendee-role {
+    font-size: 14px;
+    color: #6b46c1;
+}
+
+.admin-attendee-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #fbbf24;
+    color: #4c1d95;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.admin-attendee-empty {
+    text-align: center;
+    padding: 20px 0;
+    color: #6b46c1;
+    font-size: 15px;
+    background: rgba(124, 58, 237, 0.05);
+    border-radius: 12px;
+    border: 1px dashed rgba(124, 58, 237, 0.3);
+}
+
+/* 출근 통계 모달 스타일 */
+.attendee-stats-modal {
+    max-width: 500px;
+    width: 90%;
+}
+
+.attendee-stats-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e8e4ff;
+}
+
+.attendee-stats-header h2 {
+    margin: 0 0 10px 0;
+    font-size: 24px;
+    color: #4c1d95;
+    font-weight: 700;
+}
+
+.attendee-stats-month {
+    display: inline-block;
+    font-size: 14px;
+    color: #7c3aed;
+    background: rgba(139, 92, 246, 0.1);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-weight: 600;
+}
+
+.attendee-stats-body {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px 0;
+}
+
+.stat-item-large {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.05) 100%);
+    border: 2px solid rgba(124, 58, 237, 0.2);
+    border-radius: 16px;
+    padding: 30px;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
+}
+
+.stat-item-large:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(124, 58, 237, 0.2);
+    border-color: rgba(124, 58, 237, 0.4);
+}
+
+.stat-item-large .stat-label {
+    font-size: 16px;
+    color: #6b46c1;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.stat-item-large .stat-value {
+    font-size: 36px;
+    font-weight: 700;
+    color: #4c1d95;
+    text-shadow: 0 2px 4px rgba(107, 70, 193, 0.1);
+}
+
+.logout-form {
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+}
+
+.top-button-area {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 8px 16px;
+    border-radius: 25px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(139, 92, 246, 0.1);
+    box-shadow: 0 8px 32px rgba(107, 70, 193, 0.1);
+}
+
+/* 오픈희망 관련 CSS 제거됨 */
+.user-list {
+    font-size: 11px;
+    margin-top: 6px;
+    text-align: left;
+    color: #6b46c1;
+    /* max-height: 60px; */ /* 제거 - 내용에 따라 자동 확장 */
+    /* overflow-y: auto; */ /* 제거 - 스크롤 없이 확장 */
+}
+
+.user-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.user-list li {
+    padding: 2px 4px;
+    margin: 1px 0;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 4px;
+    border-left: 3px solid #8b5cf6;
+}
+
+/* 본인 데이터 초록색 표시 */
+.user-list li.my-data {
+    background: rgba(34, 197, 94, 0.15) !important;
+    border-left: 3px solid #22c55e !important;
+    color: #15803d !important;
+    font-weight: 600;
+}
+.modal-user-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    text-align: center;
+    border: 2px solid #e8e4ff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(107, 70, 193, 0.1);
+}
+.modal-user-table th,
+.modal-user-table td,
+.cell-40 {
+    height: 40px;
+}
+
+/* 모달에서 본인 데이터 초록색 표시 */
+.modal-user-table tr.my-data-row {
+    background: rgba(34, 197, 94, 0.08) !important;
+}
+
+.modal-user-table tr.my-data-row td {
+    border-color: #22c55e !important;
+    color: #15803d !important;
+    font-weight: 600;
+}
+
+.modal-user-table tr.my-data-row .name-cell {
+    background: rgba(34, 197, 94, 0.15) !important;
+    border-left: 4px solid #22c55e !important;
+}
+
+/* 시간표에서 본인 데이터 초록색 표시 */
+.time-table tr.my-time-table-row {
+    background: rgba(34, 197, 94, 0.08) !important;
+}
+
+.time-table tr.my-time-table-row td {
+    border-color: #22c55e !important;
+    color: #15803d !important;
+    font-weight: 600;
+}
+
+.time-table tr.my-time-table-row td:first-child {
+    background: rgba(34, 197, 94, 0.15) !important;
+    border-left: 4px solid #22c55e !important;
+}
+.time-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    border: 2px solid #e8e4ff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(107, 70, 193, 0.1);
+    table-layout: fixed; /* 열 너비 비율 강제 적용 */
+}
+.time-table th,
+.time-table td {
+    padding: 6px;
+    background: rgba(255, 255, 255, 0.9);
+}
+/* 시간/테마/출연 열 너비 비율 */
+.time-table th:nth-child(1),
+.time-table td:nth-child(1) { /* 시간 */
+    width: 22%;
+}
+.time-table th:nth-child(2),
+.time-table td:nth-child(2) { /* 테마 */
+    width: 48%;
+}
+.time-table th:nth-child(3),
+.time-table td:nth-child(3) { /* 출연 */
+    width: 30%;
+}
+.performer-cell {
+    text-align: left;
+    padding: 6px;
+    background: rgba(248, 245, 255, 0.8);
+}
+.performer-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+    padding: 4px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+.performer-item:hover {
+    background: rgba(139, 92, 246, 0.1);
+}
+.performer-checkbox {
+    margin-right: 8px;
+    accent-color: #8b5cf6;
+}
+.theme-input {
+    width: 95%;
+    padding: 8px 12px;
+    border: 2px solid #e8e4ff;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.theme-input:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    background: white;
+}
+
+.calendar-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    padding: 0 10px;
+}
+
+.calendar-wrapper table {
+    width: 100% !important;
+    table-layout: fixed !important;
+    min-width: 800px; /* 최소 너비 보장 */
+}
+
+/* 모든 th와 td에 강제로 동일한 너비 적용 */
+.calendar-wrapper table th:nth-child(1),
+.calendar-wrapper table td:nth-child(1) {
+    width: 14.285% !important;
+    max-width: 14.285% !important;
+    min-width: 14.285% !important;
+}
+
+.calendar-wrapper table th:nth-child(2),
+.calendar-wrapper table td:nth-child(2) {
+    width: 14.285% !important;
+    max-width: 14.285% !important;
+    min-width: 14.285% !important;
+}
+
+.calendar-wrapper table th:nth-child(3),
+.calendar-wrapper table td:nth-child(3) {
+    width: 14.285% !important;
+    max-width: 14.285% !important;
+    min-width: 14.285% !important;
+}
+
+.calendar-wrapper table th:nth-child(4),
+.calendar-wrapper table td:nth-child(4) {
+    width: 14.285% !important;
+    max-width: 14.285% !important;
+    min-width: 14.285% !important;
+}
+
+.calendar-wrapper table th:nth-child(5),
+.calendar-wrapper table td:nth-child(5) {
+    width: 14.285% !important;
+    max-width: 14.285% !important;
+    min-width: 14.285% !important;
+}
+
+.calendar-wrapper table th:nth-child(6),
+.calendar-wrapper table td:nth-child(6) {
+    width: 14.285% !important;
+    max-width: 14.285% !important;
+    min-width: 14.285% !important;
+}
+
+.calendar-wrapper table th:nth-child(7),
+.calendar-wrapper table td:nth-child(7) {
+    width: 14.285% !important;
+    max-width: 14.285% !important;
+    min-width: 14.285% !important;
+}
+
+.calendar-wrapper th,
+.calendar-wrapper td {
+    word-break: break-word;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.calendar {
+    flex: 1 1 60%;
+    min-width: 600px;
+}
+
+#divAdminMemoArea {
+    flex: 1 1 30%;
+    min-width: 280px;
+}
+
+/* 기존 admin.css 내용 */
+#divAdminMemoArea {
+    max-width: 1000px;
+    width: 90%;
+    margin: 30px auto;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(107, 70, 193, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+#divAdminMemoArea label {
+    display: block;
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-bottom: 12px;
+    color: #6b46c1;
+}
+
+#adminNote {
+    width: 100%;
+    min-height: 150px;
+    font-size: 16px;
+    padding: 15px;
+    border: 2px solid #e8e4ff;
+    resize: vertical;
+    box-sizing: border-box;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s ease;
+}
+
+#adminNote:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    background-color: white;
+}
+
+
+/* 모달 열린 상태에서 body 스크롤 방지 */
+body.modal-open {
+    overflow: hidden;
+    touch-action: none;
+}
+
+#divTimeTable.scroll-box {
+    max-height: 50vh;
+    overflow: auto;
+    border-radius: 12px;
+    border: 2px solid #e8e4ff;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: inset 0 2px 8px rgba(107, 70, 193, 0.1);
+}
+
+/* ===== 모바일 반응형 스타일 ===== */
+
+/* 태블릿 (768px 이하) */
+@media (max-width: 768px) {
+    .calendar {
+        width: 95% !important;
+        max-width: none !important;
+        padding: 15px !important;
+        margin: 10px auto !important;
+    }
+
+    .calendar-header {
+        flex-direction: column !important;
+        gap: 15px !important;
+        padding: 15px !important;
+        margin-bottom: 20px !important;
+    }
+
+    .calendar-header button {
+        padding: 12px 20px !important;
+        font-size: 14px !important;
+        min-width: 120px !important;
+    }
+
+    #monthYear {
+        font-size: 1.5em !important;
+        text-align: center !important;
+    }
+
+    /* 테이블 셀 크기 조정 */
+    .calendar table th {
+        height: 40px !important;
+        padding: 6px 4px !important;
+        font-size: 12px !important;
+    }
+
+    .calendar table td {
+        height: auto !important; /* 내용에 따라 자동 조정 */
+        min-height: 60px !important; /* 최소 높이 보장 */
+        padding: 6px 4px !important;
+        font-size: 12px !important;
+        vertical-align: top !important; /* 상단 정렬 */
+    }
+
+    /* 체크박스 크기 조정 */
+    .date-checkbox {
+        width: 16px !important;
+        height: 16px !important;
+        transform: scale(1) !important;
+    }
+
+    /* 사용자 리스트 최적화 */
+    .user-list {
+        font-size: 9px !important;
+        /* max-height: 40px !important; */ /* 제거 - 내용에 따라 자동 확장 */
+    }
+
+    .user-list li {
+        padding: 1px 3px !important;
+        margin: 0.5px 0 !important;
+    }
+
+    /* 저장 버튼 최적화 */
+    .save-btn {
+        width: 100% !important;
+        margin-top: 15px !important;
+        padding: 15px 20px !important;
+        font-size: 16px !important;
+    }
+
+    /* 모달 최적화 */
+    .modal-content {
+        width: 95vw !important;
+        max-height: 85vh !important;
+        padding: 20px !important;
+    }
+
+    /* 시간표 최적화 */
+    #divTimeTable.scroll-box {
+        max-height: 40vh !important;
+    }
+
+    /* 태블릿에서도 가로 스크롤 활성화 */
+    .calendar-wrapper {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    /* 태블릿에서 테이블 최소 너비 제거 */
+    .calendar-wrapper table {
+        min-width: 0 !important; /* 강제 최소너비 제거 */
+        width: 100% !important;
+        table-layout: fixed !important;
+    }
+
+    /* 태블릿 이하에서 가로 스크롤/호버 확대 제거 */
+    .calendar { min-width: 0 !important; }
+    .calendar-wrapper { overflow-x: hidden !important; }
+    .calendar table td:hover,
+    .calendar table th:hover {
+        transform: none !important;
+        box-shadow: none !important;
+    }
+}
+
+/* 모바일 (480px 이하) */
+@media (max-width: 480px) {
+    .calendar {
+        width: 95% !important;
+        padding: 8px !important;
+        margin: 5px auto !important;
+        max-width: 350px !important;
+    }
+
+    .calendar-header {
+        padding: 8px !important;
+        gap: 8px !important;
+    }
+
+    .calendar-header button {
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+        min-width: 80px !important;
+    }
+
+    #monthYear {
+        font-size: 1.2em !important;
+    }
+
+    /* 테이블 셀 더 작게 - 요일을 한 번에 보기 위해 */
+    .calendar table th {
+        height: 30px !important;
+        padding: 2px 1px !important;
+        font-size: clamp(8px, 2.8vw, 11px) !important; /* 가변 폰트 크기 */
+        width: 14.285% !important;
+        min-width: 0 !important; /* 최소 너비 제거 */
+        max-width: 14.285% !important;
+    }
+
+    .calendar table td {
+        height: auto !important; /* 내용에 따라 자동 조정 */
+        min-height: 28px !important; /* 더 낮은 최소 높이 */
+        padding: 2px 1px !important;
+        font-size: clamp(8px, 2.8vw, 11px) !important; /* 가변 폰트 크기 */
+        width: 14.285% !important;
+        min-width: 0 !important; /* 최소 너비 제거 */
+        max-width: 14.285% !important;
+        vertical-align: top !important; /* 상단 정렬 */
+    }
+
+    /* 체크박스 더 작게 */
+    .date-checkbox {
+        width: 10px !important;
+        height: 10px !important;
+        transform: scale(1) !important;
+        margin: 1px !important;
+    }
+
+    /* 사용자 리스트 더 작게 */
+    .user-list {
+        font-size: 6px !important;
+        /* max-height: 25px !important; */ /* 제거 - 내용에 따라 자동 확장 */
+    }
+
+    .user-list li {
+        padding: 0.5px 1px !important;
+        margin: 0.2px 0 !important;
+    }
+
+    /* 저장 버튼 더 작게 */
+    .save-btn {
+        padding: 10px 14px !important;
+        font-size: 13px !important;
+    }
+
+    /* 모달 더 작게 */
+    .modal-content {
+        width: 95vw !important;
+        max-height: 80vh !important;
+        padding: 15px !important;
+    }
+
+    /* 모바일에서 모달 버튼 더 작게 */
+    .modal-content .close-modal-btn {
+        padding: 6px 12px !important;
+        font-size: 11px !important;
+        margin: 3px 1px !important;
+        min-width: 70px !important;
+    }
+
+    /* 모바일에서 확정 버튼 더 작게 */
+    .modal-content .confirm-modal-btn {
+        padding: 6px 12px !important;
+        font-size: 11px !important;
+        margin: 3px 1px !important;
+        min-width: 70px !important;
+    }
+
+    /* 모바일에서 확정 취소 버튼 더 작게 */
+    .modal-content .unconfirm-modal-btn {
+        padding: 6px 12px !important;
+        font-size: 11px !important;
+        margin: 3px 1px !important;
+        min-width: 70px !important;
+    }
+
+    /* 모바일에서 모달 체크박스 더 작게 */
+    .performer-checkbox {
+        width: 12px !important;
+        height: 12px !important;
+        margin: 1px !important;
+    }
+
+    /* 모바일에서 모달 셀렉트 박스 더 작게 */
+    .modal-content select {
+        padding: 3px 4px !important;
+        font-size: 11px !important;
+        min-height: 28px !important;
+    }
+
+    /* 모바일에서 모달 테이블 셀 더 작게 */
+    .modal-user-table th,
+    .modal-user-table td {
+        padding: 3px 4px !important;
+        font-size: 11px !important;
+        height: 28px !important;
+    }
+
+    /* 모바일에서 출연자 아이템 더 작게 */
+    .performer-item {
+        padding: 1px 2px !important;
+        margin-bottom: 1px !important;
+    }
+
+    .performer-item label {
+        font-size: 10px !important;
+        margin-left: 2px !important;
+    }
+
+    /* 모바일에서 확정 상태 표시 더 작게 */
+    .confirm-status {
+        margin: 8px 0 !important;
+        padding: 6px !important;
+    }
+
+    .confirm-badge {
+        font-size: 12px !important;
+    }
+
+    /* 시간표 더 작게 */
+    #divTimeTable.scroll-box {
+        max-height: 35vh !important;
+    }
+
+    /* 모바일에서 테이블 가로 스크롤 제거 및 한 화면에 맞추기 */
+    .calendar-wrapper {
+        overflow-x: hidden !important; /* 모바일에서 한 화면에 맞추기 */
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    .calendar-wrapper table {
+        min-width: 0 !important; /* 강제 최소너비 제거 */
+        width: 100% !important;
+        table-layout: fixed !important;
+    }
+
+    /* 모바일에서 셀 내용 줄바꿈 허용 */
+    .calendar-wrapper th,
+    .calendar-wrapper td {
+        white-space: normal !important;
+    }
+    /* 날짜 숫자 크기 가변 */
+    .calendar table td strong {
+        font-size: clamp(10px, 3.2vw, 12px) !important;
+    }
+
+    /* 모바일에서 스크롤바 스타일링 */
+    .calendar-wrapper::-webkit-scrollbar {
+        height: 8px !important;
+    }
+
+    .calendar-wrapper::-webkit-scrollbar-track {
+        background: rgba(139, 92, 246, 0.1) !important;
+        border-radius: 4px !important;
+    }
+
+    .calendar-wrapper::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+        border-radius: 4px !important;
+    }
+
+    .calendar-wrapper::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%) !important;
+    }
+
+    /* 모바일에서 테이블 셀 너비 강제 고정 */
+    .calendar-wrapper table th:nth-child(1),
+    .calendar-wrapper table td:nth-child(1) {
+        width: 14.285% !important;
+        max-width: 14.285% !important;
+        min-width: 0 !important;
+    }
+
+    .calendar-wrapper table th:nth-child(2),
+    .calendar-wrapper table td:nth-child(2) {
+        width: 14.285% !important;
+        max-width: 14.285% !important;
+        min-width: 0 !important;
+    }
+
+    .calendar-wrapper table th:nth-child(3),
+    .calendar-wrapper table td:nth-child(3) {
+        width: 14.285% !important;
+        max-width: 14.285% !important;
+        min-width: 0 !important;
+    }
+
+    .calendar-wrapper table th:nth-child(4),
+    .calendar-wrapper table td:nth-child(4) {
+        width: 14.285% !important;
+        max-width: 14.285% !important;
+        min-width: 0 !important;
+    }
+
+    .calendar-wrapper table th:nth-child(5),
+    .calendar-wrapper table td:nth-child(5) {
+        width: 14.285% !important;
+        max-width: 14.285% !important;
+        min-width: 0 !important;
+    }
+
+    .calendar-wrapper table th:nth-child(6),
+    .calendar-wrapper table td:nth-child(6) {
+        width: 14.285% !important;
+        max-width: 14.285% !important;
+        min-width: 0 !important;
+    }
+
+    .calendar-wrapper table th:nth-child(7),
+    .calendar-wrapper table td:nth-child(7) {
+        width: 14.285% !important;
+        max-width: 14.285% !important;
+        min-width: 0 !important;
+    }
+
+    /* 모바일에서 테마를 더 줄이고 출연을 더 넓게 */
+    .time-table th:nth-child(1),
+    .time-table td:nth-child(1) { /* 시간 */
+        width: 20% !important;
+    }
+    .time-table th:nth-child(2),
+    .time-table td:nth-child(2) { /* 테마 */
+        width: 40% !important;
+    }
+    .time-table th:nth-child(3),
+    .time-table td:nth-child(3) { /* 출연 */
+        width: 40% !important;
+    }
+}
+
+/* 초소형 모바일 (360px 이하) */
+@media (max-width: 360px) {
+    .calendar {
+        width: 98% !important;
+        padding: 6px !important;
+        max-width: 320px !important;
+    }
+
+    .calendar-header button {
+        padding: 6px 10px !important;
+        font-size: 11px !important;
+        min-width: 70px !important;
+    }
+
+    #monthYear {
+        font-size: 1.1em !important;
+    }
+
+    /* 테이블 셀 최소 크기 - 요일을 한 번에 보기 위해 */
+    .calendar table th {
+        height: 25px !important;
+        padding: 1px 0.5px !important;
+        font-size: clamp(8px, 2.6vw, 10px) !important;
+        width: 14.285% !important;
+        min-width: 0 !important; /* 최소 너비 제거 */
+        max-width: 14.285% !important;
+    }
+
+    .calendar table td {
+        height: auto !important;
+        min-height: 26px !important; /* 더 낮은 최소 높이 */
+        padding: 1px 0.5px !important;
+        font-size: clamp(8px, 2.6vw, 10px) !important;
+        width: 14.285% !important;
+        min-width: 0 !important; /* 최소 너비 제거 */
+        max-width: 14.285% !important;
+        vertical-align: top !important;
+    }
+
+    /* 요일 헤더 텍스트 최소 크기 */
+    .calendar table th {
+        font-size: 9px !important;
+        padding: 4px 0.5px !important;
+    }
+
+    /* 체크박스 최소 크기 */
+    .date-checkbox {
+        width: 8px !important;
+        height: 8px !important;
+        margin: 0.5px !important;
+    }
+
+    /* 사용자 리스트 최소 크기 */
+    .user-list {
+        font-size: 5px !important;
+        /* max-height: 20px !important; */ /* 제거 - 내용에 따라 자동 확장 */
+    }
+
+    .user-list li {
+        padding: 0.3px 0.5px !important;
+        margin: 0.1px 0 !important;
+    }
+
+    /* 날짜 텍스트 최소 크기 */
+    .calendar table td strong {
+        font-size: 9px !important;
+    }
+
+    /* 초소형 모바일에서도 가로 스크롤 제거 및 한 화면에 맞추기 */
+    .calendar-wrapper {
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    .calendar-wrapper table {
+        min-width: 0 !important; /* 강제 최소너비 제거 */
+        width: 100% !important;
+        table-layout: fixed !important;
+    }
+}
+
+/* ===== 모바일 특별 기능 ===== */
+
+/* 모바일에서 스크롤바 스타일링 (모든 크기에서 적용) */
+@media (max-width: 768px) {
+    .calendar-wrapper::-webkit-scrollbar {
+        height: 8px !important;
+    }
+    
+    .calendar-wrapper::-webkit-scrollbar-track {
+        background: rgba(139, 92, 246, 0.1) !important;
+        border-radius: 4px !important;
+    }
+    
+    .calendar-wrapper::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+        border-radius: 4px !important;
+    }
+    
+    .calendar-wrapper::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%) !important;
+    }
+}
+
+/* 모바일에서 터치 피드백 */
+@media (max-width: 768px) {
+    .calendar-header button:active,
+    .save-btn:active {
+        transform: scale(0.95) !important;
+        transition: transform 0.1s ease !important;
+    }
+    
+    /* 모바일에서 체크박스 크기 조정 */
+    .date-checkbox {
+        width: 16px !important;
+        height: 16px !important;
+        margin: 4px !important;
+        transform: scale(1) !important;
+    }
+    
+    /* 모바일에서 사용자 리스트 터치 친화적 */
+    .user-list li {
+        min-height: 24px !important;
+        display: flex !important;
+        align-items: center !important;
+        cursor: pointer !important;
+    }
+    
+    .user-list li:active {
+        background: rgba(139, 92, 246, 0.2) !important;
+        transform: scale(0.98) !important;
+    }
+    
+    /* 모바일에서 모달 스크롤 최적화 */
+    .modal-content {
+        -webkit-overflow-scrolling: touch !important;
+        overscroll-behavior: contain !important;
+    }
+    
+    /* 모바일에서 모달 버튼 크기 조정 */
+    .modal-content .close-modal-btn {
+        padding: 8px 16px !important;
+        font-size: 12px !important;
+        margin: 4px 2px !important;
+        min-width: 80px !important;
+    }
+    
+    /* 모바일에서 확정 버튼 크기 조정 */
+    .modal-content .confirm-modal-btn {
+        padding: 8px 16px !important;
+        font-size: 12px !important;
+        margin: 4px 2px !important;
+        min-width: 80px !important;
+    }
+    
+    /* 모바일에서 확정 취소 버튼 크기 조정 */
+    .modal-content .unconfirm-modal-btn {
+        padding: 8px 16px !important;
+        font-size: 12px !important;
+        margin: 4px 2px !important;
+        min-width: 80px !important;
+    }
+    
+    /* 모바일에서 모달 체크박스 크기 조정 */
+    .performer-checkbox {
+        width: 14px !important;
+        height: 14px !important;
+        margin: 2px !important;
+        transform: scale(1) !important;
+    }
+    
+    /* 모바일에서 모달 셀렉트 박스 크기 조정 */
+    .modal-content select {
+        padding: 4px 6px !important;
+        font-size: 12px !important;
+        min-height: 32px !important;
+    }
+    
+    /* 모바일에서 모달 테이블 셀 크기 조정 */
+    .modal-user-table th,
+    .modal-user-table td {
+        padding: 4px 6px !important;
+        font-size: 12px !important;
+        height: 32px !important;
+    }
+    
+    /* 모바일에서 시간표 터치 최적화 */
+    .theme-input {
+        min-height: 32px !important;
+        font-size: 14px !important; /* iOS에서 줌 방지 */
+        padding: 6px 8px !important;
+    }
+    
+    /* 모바일에서 출연자 아이템 크기 조정 */
+    .performer-item {
+        padding: 2px 4px !important;
+        margin-bottom: 2px !important;
+    }
+    
+    .performer-item label {
+        font-size: 11px !important;
+        margin-left: 4px !important;
+    }
+    
+    /* 모바일에서 확정 상태 표시 */
+    .confirm-status {
+        margin: 10px 0 !important;
+        padding: 8px !important;
+    }
+    
+    .confirm-badge {
+        font-size: 14px !important;
+    }
+}
+
+/* 모바일에서 세로 방향 최적화 */
+@media (max-width: 768px) and (orientation: portrait) {
+    .calendar {
+        margin: 5px auto !important;
+    }
+    
+    .calendar-header {
+        margin-bottom: 15px !important;
+    }
+    
+    .save-btn {
+        margin-top: 10px !important;
+    }
+}
+
+/* 모바일에서 가로 방향 최적화 */
+@media (max-width: 768px) and (orientation: landscape) {
+    .calendar table th,
+    .calendar table td {
+        height: 70px !important;
+    }
+    
+    .user-list {
+        /* max-height: 50px !important; */ /* 제거 - 내용에 따라 자동 확장 */
+    }
+}

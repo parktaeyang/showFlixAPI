@@ -1,0 +1,62 @@
+@media (max-width: 768px) {
+    #adminButtonArea {
+        /* 관리자 버튼 영역 반응형 */
+        top: 10px !important;
+        right: 10px !important;
+    }
+
+    .admin-btn {
+        /* 관리자 버튼 영역 반응형 */
+        padding: 10px 16px;
+        font-size: 12px;
+        min-width: 120px;
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+        box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3) !important;
+    }
+
+    .calendar {
+        width: 100%;
+        font-size: 12px;
+        background: rgba(255, 255, 255, 0.95) !important;
+        border-radius: 12px !important;
+        padding: 15px !important;
+    }
+    th, td {
+        height: 60px;
+        border-color: #e8e4ff !important;
+    }
+
+    #adminNote {
+        font-size: 14px;
+        min-height: 100px;
+        border-color: #e8e4ff !important;
+    }
+
+    .user-list {
+        font-size: 8px;
+        margin-top: 4px;
+        text-align: left;
+        color: #6b46c1;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-btn {
+        /* 관리자 버튼 영역 반응형 */
+        padding: 8px 12px;
+        font-size: 11px;
+        min-width: 100px;
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+    }
+
+    .modal-content {
+        max-height: 88vh;
+        padding: 15px;
+        border-radius: 15px !important;
+        background: rgba(255, 255, 255, 0.95) !important;
+    }
+    #divTimeTable.scroll-box {
+        max-height: 45vh;
+        border-color: #e8e4ff !important;
+    }
+}

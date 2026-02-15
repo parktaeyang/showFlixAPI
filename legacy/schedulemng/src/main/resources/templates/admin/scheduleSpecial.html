@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layouts/adminLayout :: admin-layout('특수 예약', 'schedule-special')}">
+<head>
+    <meta charset="UTF-8">
+    <title>특수 예약 관리</title>
+    <link rel="stylesheet" th:href="@{/css/scheduleSpecial.css?v=7}">
+    <style>
+        /* 모바일 반응형 스타일 */
+        @media (max-width: 768px) {
+            .search-input-group {
+                flex-direction: column !important;
+                gap: 10px !important;
+            }
+            .status-buttons {
+                flex-wrap: wrap !important;
+                gap: 8px !important;
+            }
+            .action-buttons {
+                flex-direction: column !important;
+                gap: 8px !important;
+            }
+            .special-stats-grid {
+                grid-template-columns: 1fr !important;
+                gap: 15px !important;
+            }
+            .special-reservation-actions {
+                flex-direction: column !important;
+                gap: 8px !important;
+            }
+            .btn-special {
+                width: 100% !important;
+                font-size: 12px !important;
+            }
+            .special-filter-section {
+                padding: 20px !important;
+            }
+            .special-stats-section {
+                padding: 15px !important;
+            }
+            .special-reservation-card {
+                padding: 20px !important;
+            }
+            .section-divider {
+                margin: 20px 0 !important;
+            }
+            .search-header h3 {
+                font-size: 18px !important;
+            }
+            .search-header p {
+                font-size: 14px !important;
+            }
+            .special-reservation-title {
+                font-size: 18px !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .special-filter-section {
+                padding: 15px !important;
+            }
+            .special-stats-section {
+                padding: 10px !important;
+            }
+            .special-reservation-card {
+                padding: 15px !important;
+            }
+            .btn-special {
+                padding: 6px 12px !important;
+                font-size: 11px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 콘텐츠 영역 -->
+    <div th:fragment="content">
+        <div class="content-header">
+            <h1>🎯 특수 예약 관리</h1>
+            <p>특별한 예약 및 이벤트를 관리하고 상세 정보를 입력/수정할 수 있습니다.</p>
+        </div>
+
+        <!-- 검색 및 필터 섹션 -->
+        <div class="content-section">
+            <div class="special-filter-section" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important; padding: 30px !important; border-radius: 15px !important; margin-bottom: 30px !important; border: 2px solid #dee2e6 !important; box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12) !important; position: relative !important; overflow: hidden !important;">
+            <div class="search-header">
+                <h3><i class="fas fa-search"></i> 예약 검색</h3>
+                <p>원하는 조건으로 예약을 빠르게 찾아보세요</p>
+            </div>
+            
+            <div class="search-main">
+                <div class="search-input-group" style="display: flex !important; gap: 15px !important; flex-wrap: nowrap !important;">
+                    <div class="search-input-wrapper" style="flex: 1 !important;">
+                        <i class="fas fa-user search-icon"></i>
+                        <input type="text" class="search-input" id="searchCustomerName" 
+                               placeholder="고객명으로 검색...">
+                    </div>
+                    
+                    <div class="search-input-wrapper" style="flex: 1 !important;">
+                        <i class="fas fa-phone search-icon"></i>
+                        <input type="text" class="search-input" id="searchContactInfo" 
+                               placeholder="연락처로 검색...">
+                    </div>
+                    
+                    <div class="search-input-wrapper" style="flex: 1 !important;">
+                        <i class="fas fa-sticky-note search-icon"></i>
+                        <input type="text" class="search-input" id="searchSpecialRemarks" 
+                               placeholder="특이사항으로 검색...">
+                    </div>
+                </div>
+                
+                <div class="search-actions">
+                    <div class="status-filter-group">
+                        <label class="status-label">상태별 필터:</label>
+                        <div class="status-buttons">
+                        <button class="status-btn active" data-status="" onclick="filterByStatus('')" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; color: white !important; border: none !important; padding: 8px 16px !important; border-radius: 20px !important; font-weight: 500 !important; transition: all 0.3s ease !important; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;">
+                            <i class="fas fa-list"></i> 전체
+                        </button>
+                        <button class="status-btn" data-status="PENDING" onclick="filterByStatus('PENDING')" style="background: white !important; color: #6c757d !important; border: 1px solid #e9ecef !important; padding: 8px 16px !important; border-radius: 20px !important; font-weight: 500 !important; transition: all 0.3s ease !important;">
+                            <i class="fas fa-clock"></i> 대기
+                        </button>
+                        <button class="status-btn" data-status="CONFIRMED" onclick="filterByStatus('CONFIRMED')" style="background: white !important; color: #6c757d !important; border: 1px solid #e9ecef !important; padding: 8px 16px !important; border-radius: 20px !important; font-weight: 500 !important; transition: all 0.3s ease !important;">
+                            <i class="fas fa-check-circle"></i> 확정
+                        </button>
+                        <button class="status-btn" data-status="COMPLETED" onclick="filterByStatus('COMPLETED')" style="background: white !important; color: #6c757d !important; border: 1px solid #e9ecef !important; padding: 8px 16px !important; border-radius: 20px !important; font-weight: 500 !important; transition: all 0.3s ease !important;">
+                            <i class="fas fa-check-double"></i> 완료
+                        </button>
+                        <button class="status-btn" data-status="CANCELLED" onclick="filterByStatus('CANCELLED')" style="background: white !important; color: #6c757d !important; border: 1px solid #e9ecef !important; padding: 8px 16px !important; border-radius: 20px !important; font-weight: 500 !important; transition: all 0.3s ease !important;">
+                            <i class="fas fa-times-circle"></i> 취소
+                        </button>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn-search" onclick="searchReservations()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; color: white !important; border: none !important; padding: 8px 16px !important; border-radius: 8px !important; font-weight: 500 !important; font-size: 14px !important; transition: all 0.3s ease !important;">
+                            <i class="fas fa-search"></i> 검색
+                        </button>
+                        <button class="btn-clear" onclick="clearSearchFields()" style="background: #6c757d !important; color: white !important; border: none !important; padding: 8px 16px !important; border-radius: 8px !important; font-weight: 500 !important; font-size: 14px !important; transition: all 0.3s ease !important;">
+                            <i class="fas fa-eraser"></i> 초기화
+                        </button>
+                        <button class="btn-refresh" onclick="loadSpecialReservations()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; color: white !important; border: none !important; padding: 8px 16px !important; border-radius: 8px !important; font-weight: 500 !important; font-size: 14px !important; transition: all 0.3s ease !important;">
+                            <i class="fas fa-sync-alt"></i> 새로고침
+                        </button>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <!-- 섹션 구분선 -->
+        <div class="section-divider" style="height: 2px !important; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; margin: 30px 0 !important; border-radius: 1px !important; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;"></div>
+
+        <!-- 예약 현황 요약 섹션 -->
+        <div class="content-section">
+            <div class="special-stats-section" style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important; padding: 15px !important; border-radius: 15px !important; margin-bottom: 20px !important; border: 2px solid #e9ecef !important; box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12) !important; position: relative !important; overflow: hidden !important;">
+                <div class="special-stats-grid" style="display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 20px !important; margin-top: 20px !important; width: 100% !important;">
+            <div class="special-stat-card" style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important; padding: 20px !important; border-radius: 12px !important; text-align: center !important; border: 1px solid #e9ecef !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important; transition: transform 0.2s ease !important;">
+                <div class="special-stat-number" id="totalReservations" style="font-size: 24px !important; font-weight: bold !important; color: #667eea !important; margin-bottom: 8px !important;">0</div>
+                <div class="special-stat-label" style="font-size: 14px !important; color: #6c757d !important; font-weight: 500 !important;">총 예약</div>
+            </div>
+            <div class="special-stat-card" style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important; padding: 20px !important; border-radius: 12px !important; text-align: center !important; border: 1px solid #e9ecef !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important; transition: transform 0.2s ease !important;">
+                <div class="special-stat-number" id="pendingReservations" style="font-size: 24px !important; font-weight: bold !important; color: #667eea !important; margin-bottom: 8px !important;">0</div>
+                <div class="special-stat-label" style="font-size: 14px !important; color: #6c757d !important; font-weight: 500 !important;">대기중</div>
+            </div>
+            <div class="special-stat-card" style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important; padding: 20px !important; border-radius: 12px !important; text-align: center !important; border: 1px solid #e9ecef !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important; transition: transform 0.2s ease !important;">
+                <div class="special-stat-number" id="confirmedReservations" style="font-size: 24px !important; font-weight: bold !important; color: #667eea !important; margin-bottom: 8px !important;">0</div>
+                <div class="special-stat-label" style="font-size: 14px !important; color: #6c757d !important; font-weight: 500 !important;">확정</div>
+            </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 섹션 구분선 -->
+        <div class="section-divider" style="height: 2px !important; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; margin: 30px 0 !important; border-radius: 1px !important; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;"></div>
+
+        <!-- 특수 예약 관리표 섹션 -->
+        <div class="content-section">
+            <div class="special-reservation-card" style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important; border-radius: 15px !important; padding: 25px !important; margin-bottom: 20px !important; box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12) !important; border: 2px solid #e9ecef !important; position: relative !important; overflow: hidden !important;">
+            <div class="special-reservation-header">
+                <h3 class="special-reservation-title">📊 특수 예약 관리표</h3>
+                <div class="special-reservation-actions">
+                    <button class="btn-special btn-info" onclick="addNewReservation()"
+                            title="새로운 특수 예약을 추가합니다" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important; color: white !important; border: none !important; padding: 8px 16px !important; border-radius: 8px !important; font-weight: 500 !important; font-size: 14px !important; transition: all 0.3s ease !important;">
+                        <i class="fas fa-plus"></i> 새 예약 추가
+                    </button>
+                    <button class="btn-special" onclick="saveAllReservations()"
+                            title="모든 변경사항을 저장합니다" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; color: white !important; border: none !important; padding: 8px 16px !important; border-radius: 8px !important; font-weight: 500 !important; font-size: 14px !important; transition: all 0.3s ease !important;">
+                        <i class="fas fa-save"></i> 전체 저장
+                    </button>
+                    <button class="btn-special btn-success" onclick="exportToExcel()"
+                            title="현재 데이터를 엑셀 파일로 다운로드합니다" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important; color: white !important; border: none !important; padding: 8px 16px !important; border-radius: 8px !important; font-weight: 500 !important; font-size: 14px !important; transition: all 0.3s ease !important;">
+                        <i class="fas fa-download"></i> 엑셀 내보내기
+                    </button>
+                </div>
+            </div>
+            <div class="special-table-container">
+                <table class="special-schedule-table" id="specialReservationTable">
+                    <thead>
+                    <tr>
+                        <th>날짜</th>
+                        <th>시간</th>
+                        <th>특이사항</th>
+                        <th>이름</th>
+                        <th>인원(명)</th>
+                        <th>결제여부</th>
+                        <th>연락처</th>
+                        <th>비고</th>
+                        <th>관리</th>
+                    </tr>
+                    </thead>
+                    <tbody id="specialReservationTableBody">
+                    <!-- 데이터가 없을 때 표시할 빈 행 -->
+                    <tr class="empty-row" style="display: none;">
+                        <td colspan="9" class="empty-message">
+                            <div class="empty-state">
+                                <i class="fas fa-calendar-plus"></i>
+                                <p>등록된 특수 예약이 없습니다.</p>
+                                <button class="btn-special btn-info" onclick="addNewReservation()">
+                                    <i class="fas fa-plus"></i> 새 예약 추가하기
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            </div>
+        </div>
+
+    </div>
+
+
+</body>
+
+<!-- 스크립트 영역 -->
+<div th:fragment="scripts">
+    <script th:src="@{/js/scheduleSpecial.js}"></script>
+</div>
+</html>

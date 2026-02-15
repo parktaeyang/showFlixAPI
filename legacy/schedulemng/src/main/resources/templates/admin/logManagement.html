@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/layouts/adminLayout :: admin-layout('로그 관리', 'logs')}">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <!-- 콘텐츠 영역 -->
+    <div th:fragment="content">
+        <div class="content-header">
+            <h1>📋 로그 관리</h1>
+            <p>시스템 로그를 확인하고 관리합니다.</p>
+        </div>
+
+        <!-- 로그 필터 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>로그 필터</h5>
+            </div>
+            <div class="card-body">
+                <form id="logFilterForm">
+                    <div class="row g-3">
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="mb-3">
+                                <label for="logLevel" class="form-label">로그 레벨</label>
+                                <select class="form-select" id="logLevel" name="logLevel">
+                                    <option value="">모든 레벨</option>
+                                    <option value="ERROR">ERROR</option>
+                                    <option value="WARN">WARN</option>
+                                    <option value="INFO">INFO</option>
+                                    <option value="DEBUG">DEBUG</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="mb-3">
+                                <label for="startDate" class="form-label">시작일</label>
+                                <input type="date" class="form-control" id="startDate" name="startDate">
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="mb-3">
+                                <label for="endDate" class="form-label">종료일</label>
+                                <input type="date" class="form-control" id="endDate" name="endDate">
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="mb-3">
+                                <label for="searchKeyword" class="form-label">검색어</label>
+                                <input type="text" class="form-control" id="searchKeyword" name="searchKeyword" placeholder="검색어 입력">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary me-2">검색</button>
+                            <button type="button" class="btn btn-secondary" onclick="clearFilter()">초기화</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 로그 목록 -->
+        <div class="card">
+            <div class="card-header">
+                <div class="row g-3 align-items-center">
+                    <div class="col-12 col-sm-6 col-lg-8">
+                        <h5 class="mb-0">로그 목록</h5>
+                    </div>
+                    <div class="col-12 col-sm-6 col-lg-4">
+                        <div class="d-grid gap-2 d-sm-flex">
+                            <button class="btn btn-sm btn-outline-primary" onclick="refreshLogs()">새로고침</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="clearLogs()">로그 삭제</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>시간</th>
+                                <th>레벨</th>
+                                <th>클래스</th>
+                                <th>메시지</th>
+                                <th>작업</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logTableBody">
+                            <!-- JavaScript로 동적 생성 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 스크립트 영역 -->
+    <div th:fragment="scripts">
+        <script>
+            // 로그 관리 전용 스크립트
+            document.addEventListener('DOMContentLoaded', function() {
+                // 서비스 준비중인 경우 알럿 표시 후 대시보드로 리다이렉트
+                if ([[${serviceNotReady}]]) {
+                    showAlert('서비스 준비중입니다.', 'warning');
+                    setTimeout(() => {
+                        window.location.href = '/admin';
+                    }, 2000);
+                    return;
+                }
+                
+                setupLogManagement();
+            });
+
+            function setupLogManagement() {
+                // 로그 필터 폼 설정
+                const logFilterForm = document.getElementById('logFilterForm');
+                if (logFilterForm) {
+                    logFilterForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        showAlert('로그 검색 기능은 준비중입니다.', 'info');
+                    });
+                }
+            }
+
+            function refreshLogs() {
+                showAlert('로그 새로고침 기능은 준비중입니다.', 'info');
+            }
+
+            function clearLogs() {
+                showAlert('로그 삭제 기능은 준비중입니다.', 'info');
+            }
+
+            function clearFilter() {
+                document.getElementById('logFilterForm').reset();
+                showAlert('필터가 초기화되었습니다.', 'info');
+            }
+        </script>
+    </div>
+</body>
+</html> 

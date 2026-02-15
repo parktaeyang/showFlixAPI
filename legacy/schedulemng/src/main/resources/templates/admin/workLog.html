@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/layouts/adminLayout :: admin-layout('업무 일지', 'work-log')}">
+<head>
+</head>
+<body>
+    <!-- 콘텐츠 영역 -->
+    <div th:fragment="content">
+        <link rel="stylesheet" href="/css/workLog.css">
+        <div class="content-header">
+            <h1>📊 업무일지</h1>
+        </div>
+
+        <!-- 월 선택 -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <div class="row g-3 align-items-center">
+                    <div class="col-12 col-sm-6 col-lg-8">
+                        <h5 class="mb-0">📅 업무일지</h5>
+                    </div>
+                    <div class="col-12 col-sm-6 col-lg-4">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <select class="form-select form-select-sm" id="yearSelect">
+                                    <option th:each="year : ${#numbers.sequence(2023, 2030)}"
+                                            th:value="${year}"
+                                            th:text="${year} + '년'"
+                                            th:selected="${year == #dates.format(#dates.createNow(), 'yyyy')}">
+                                        2024년
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <select class="form-select form-select-sm" id="monthSelect">
+                                    <option th:each="month : ${#numbers.sequence(1, 12)}"
+                                            th:value="${month}"
+                                            th:text="${month} + '월'"
+                                            th:selected="${month == #dates.format(#dates.createNow(), 'MM')}">
+                                        1월
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <button class="btn btn-primary" onclick="loadWorkLog()">
+                            <i class="fas fa-search"></i> 조회
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 스케줄 테이블 -->
+        <div class="card">
+            <div class="card-header">
+                <div class="row g-3 align-items-center">
+                    <div class="col-12 col-sm-6 col-lg-8">
+                        <h5 class="mb-0">📊 업무일지 관리표</h5>
+                    </div>
+                    <div class="col-12 col-sm-6 col-lg-4">
+                        <div class="d-grid gap-2 d-sm-flex">
+                            <button class="btn btn-secondary btn-sm" onclick="addRow()">
+                                <i class="fas fa-plus"></i> 업무 추가
+                            </button>
+                            <button class="btn btn-success btn-sm" onclick="exportToExcel()">
+                                <i class="fas fa-download"></i> 엑셀 내보내기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-container">
+                    <table class="workLog-table" id="workLogTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 110px;">날짜</th>
+                                <th style="width: 85px;">담당자</th>
+                                <th style="min-width: 120px;">현금 결제</th>
+                                <th style="width: 320px; white-space: nowrap;">지정석/특수예약/멤버쉽 가입</th>
+                                <th style="min-width: 140px;">이벤트</th>
+                                <th style="min-width: 340px;">가게 관련</th>
+                                <th style="min-width: 340px;">특이사항</th>
+                                <th style="width: 130px;">작업</th>
+                            </tr>
+                        </thead>
+                        <tbody id="workLogTableBody">
+                            <!-- JavaScript로 동적 생성 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 스크립트 영역 -->
+    <div th:fragment="scripts">
+        <script src="/js/workLog.js"></script>
+    </div>
+</body>
+</html>
