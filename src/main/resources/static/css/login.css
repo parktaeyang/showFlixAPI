@@ -88,3 +88,24 @@ body {
   color: #ff0000;
 }
 
+.save-id-wrap {
+  margin-bottom: 1rem;
+}
+
+.save-id-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: normal;
+  font-size: 0.9rem;
+  color: #555;
+  cursor: pointer;
+}
+
+.save-id-label input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: #007bff;
+  cursor: pointer;
+}
+
