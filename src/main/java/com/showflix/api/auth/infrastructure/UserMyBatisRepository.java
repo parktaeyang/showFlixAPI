@@ -5,6 +5,7 @@ import com.showflix.api.auth.domain.UserRepository;
 import com.showflix.api.auth.mapper.UserMapper;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -22,6 +23,11 @@ public class UserMyBatisRepository implements UserRepository {
     @Override
     public Optional<User> findByUserid(String userid) {
         return Optional.ofNullable(userMapper.findByUserid(userid));
+    }
+
+    @Override
+    public List<User> findActors() {
+        return userMapper.findActors();
     }
 }
 

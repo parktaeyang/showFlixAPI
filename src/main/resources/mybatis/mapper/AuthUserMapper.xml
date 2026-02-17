@@ -17,5 +17,18 @@
         WHERE userid = #{userid}
     </select>
 
+    <!-- 배우(비관리자) 목록 조회 - Schedule 도메인에서 스케줄 테이블 열 구성에 사용 -->
+    <select id="findActors"
+            resultType="com.showflix.api.auth.domain.User">
+        SELECT
+            userid,
+            username,
+            password,
+            is_admin AS admin
+        FROM schedule_users
+        WHERE is_admin = false
+        ORDER BY username ASC
+    </select>
+
 </mapper>
 

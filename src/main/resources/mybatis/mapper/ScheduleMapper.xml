@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.showflix.api.schedule.mapper.ScheduleMapper">
+
+    <resultMap id="ScheduleResult" type="com.showflix.api.schedule.domain.Schedule">
+        <result property="id"       column="id"/>
+        <result property="date"     column="date"/>
+        <result property="username" column="username"/>
+        <result property="hours"    column="hours"/>
+        <result property="memo"     column="memo"/>
+        <result property="remarks"  column="remarks"/>
+    </resultMap>
+
+    <!-- 월별 전체 조회 -->
+    <select id="findByYearAndMonth" resultMap="ScheduleResult">
+        SELECT id, date, username, hours, memo, remarks
+        FROM schedule
+        WHERE YEAR(date) = #{year}
+          AND MONTH(date) = #{month}
+        ORDER BY date ASC, username ASC
+    </select>
+
+    <!-- date + username 기준 단건 조회 -->
+    <select id="findByDateAndUsername" resultMap="ScheduleResult">
+        SELECT id, date, username, hours, memo, remarks
+        FROM schedule
+        WHERE date = #{date}
+          AND username = #{username}
+        LIMIT 1
+    </select>
+
+    <!-- 신규 삽입 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO schedule (date, username, hours, memo, remarks)
+        VALUES (#{date}, #{username}, #{hours}, #{memo}, #{remarks})
+    </insert>
+
+    <!-- id 기준 수정 -->
+    <update id="update">
+        UPDATE schedule
+        SET hours   = #{hours},
+            remarks = #{remarks}
+        WHERE id = #{id}
+    </update>
+
+    <!-- date + username 기준 삭제 -->
+    <delete id="deleteByDateAndUsername">
+        DELETE FROM schedule
+        WHERE date = #{date}
+          AND username = #{username}
+    </delete>
+
+    <!--
+        일별 특이사항 일괄 업데이트
+        레거시에서는 루프로 개별 UPDATE했으나 단일 쿼리로 최적화
+    -->
+    <update id="updateRemarksByDate">
+        UPDATE schedule
+        SET remarks = #{remarks}
+        WHERE date = #{date}
+    </update>
+
+</mapper>

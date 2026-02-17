@@ -35,8 +35,8 @@ public class SecurityConfig {
                         .requestMatchers("/schedule/**").authenticated()
                         .requestMatchers("/api/user/info").authenticated()
                         .requestMatchers("/api/schedule/**").authenticated()
-                        // 나머지 API는 일단 허용 (추후 필요시 조정)
-                        .requestMatchers("/api/**").permitAll()
+                        // 관리자 전용 경로
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .formLogin(login -> login
