@@ -134,15 +134,17 @@ function UserDropdown() {
 function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDates, setSelectedDates] = useState(new Set());
+  const [monthData, setMonthData] = useState({ isAdmin: false, data: [] });
+  const [currentUserId, setCurrentUserId] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [saveLoading, setSaveLoading] = useState(false);
 
   // 인증 상태 확인
   useEffect(() => {
     fetch('/api/user/info')
       .then(res => {
         if (res.status === 401 || res.status === 403) {
-          // 인증되지 않은 경우 로그인 페이지로 리다이렉트
           window.location.href = '/index.html';
           return null;
         }
@@ -151,14 +153,41 @@ function CalendarPage() {
       .then(data => {
         if (data) {
           setIsAuthenticated(true);
+          setCurrentUserId(data.userid || data.userId || null);
         }
         setIsLoading(false);
       })
       .catch(() => {
-        // 에러 발생 시 로그인 페이지로 리다이렉트
         window.location.href = '/index.html';
       });
   }, []);
+
+  // 월별 데이터 조회
+  const fetchMonthData = (year, month, userId) => {
+    fetch(`/api/schedule/dates/month?year=${year}&month=${month}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data) {
+          setMonthData({ isAdmin: data.isAdmin, data: data.data || [] });
+          // 본인 출근일만 체크박스에 반영
+          const myDates = new Set(
+            (data.data || [])
+              .filter(d => d.userId === userId)
+              .map(d => d.date)
+          );
+          setSelectedDates(myDates);
+        }
+      })
+      .catch(err => console.error('월별 데이터 조회 실패:', err));
+  };
+
+  // currentDate 변경 시 월별 데이터 로드
+  useEffect(() => {
+    if (!isAuthenticated || !currentUserId) return;
+    const y = currentDate.getFullYear();
+    const m = currentDate.getMonth() + 1;
+    fetchMonthData(y, m, currentUserId);
+  }, [isAuthenticated, currentUserId, currentDate.getFullYear(), currentDate.getMonth()]);
 
   // 로딩 중이거나 인증되지 않은 경우 아무것도 렌더링하지 않음
   if (isLoading || !isAuthenticated) {
@@ -205,17 +234,27 @@ function CalendarPage() {
       return;
     }
 
+    setSaveLoading(true);
     try {
-      // TODO: 실제 API 엔드포인트로 변경 필요
-      // await axios.post("/api/dates/save", Array.from(selectedDates));
-      
+      const payload = {};
+      selectedDates.forEach(dateStr => {
+        payload[dateStr] = { openHope: false };
+      });
+      const res = await fetch('/api/schedule/dates/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        throw new Error(res.status === 401 ? '로그인이 필요합니다.' : '저장에 실패했습니다.');
+      }
       alert("저장 완료");
-      
-      // 저장 후 선택 초기화 (선택사항)
-      // setSelectedDates(new Set());
+      fetchMonthData(year, month + 1, currentUserId);
     } catch (error) {
       console.error("저장 실패:", error);
-      alert("저장 실패: " + (error.response?.data?.message || error.message || "알 수 없는 오류"));
+      alert("저장 실패: " + (error.message || "알 수 없는 오류"));
+    } finally {
+      setSaveLoading(false);
     }
   };
 
@@ -328,9 +367,11 @@ function CalendarPage() {
         )
       ),
       // 저장 버튼
-      React.createElement('button', { className: 'save-btn', onClick: saveSelections },
-        '✅ 저장하기'
-      )
+      React.createElement('button', {
+        className: 'save-btn',
+        onClick: saveSelections,
+        disabled: saveLoading
+      }, saveLoading ? '저장 중...' : '✅ 저장하기')
     ),
     // 출근자 섹션
     React.createElement('div', { className: 'attendee-section' },
@@ -338,9 +379,26 @@ function CalendarPage() {
         React.createElement('h3', { className: 'attendee-title' }, '이번 달 출근자'),
         React.createElement('span', { className: 'attendee-month' }, getMonthYearString())
       ),
-      React.createElement('div', { className: 'attendee-empty' },
-        '이번 달 출근 예정자가 없습니다.'
-      )
+      monthData.data.length === 0
+        ? React.createElement('div', { className: 'attendee-empty' }, '이번 달 출근 예정자가 없습니다.')
+        : React.createElement('ul', { className: 'attendee-list' },
+            (() => {
+              const byUser = {};
+              monthData.data.forEach(d => {
+                const uid = d.userId || d.user_id || 'unknown';
+                if (!byUser[uid]) byUser[uid] = { name: d.userName || d.user_name || uid, dates: [] };
+                if (!byUser[uid].dates.includes(d.date)) byUser[uid].dates.push(d.date);
+              });
+              return Object.entries(byUser).map(([uid, info]) =>
+                React.createElement('li', { key: uid, className: 'attendee-item' },
+                  React.createElement('span', { className: 'attendee-name' }, info.name),
+                  React.createElement('span', { className: 'attendee-dates' },
+                    info.dates.sort().join(', ')
+                  )
+                )
+              );
+            })()
+          )
     )
     )
   );

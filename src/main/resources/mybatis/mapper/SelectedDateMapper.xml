@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.showflix.api.schedule.mapper.SelectedDateMapper">
+
+    <resultMap id="SelectedDateResult" type="com.showflix.api.schedule.domain.SelectedDate">
+        <result property="date" column="date"/>
+        <result property="userId" column="user_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="openHope" column="open_hope"/>
+        <result property="role" column="role"/>
+        <result property="confirmed" column="confirmed"/>
+        <result property="remarks" column="remarks"/>
+    </resultMap>
+
+    <select id="findByDateBetween" resultMap="SelectedDateResult">
+        SELECT date, user_id, user_name, open_hope, role, confirmed, remarks
+        FROM selected_date
+        WHERE date BETWEEN #{start} AND #{end}
+        ORDER BY date, user_id
+    </select>
+
+    <insert id="insert">
+        INSERT INTO selected_date (date, user_id, user_name, open_hope, role, confirmed, remarks)
+        VALUES (#{date}, #{userId}, #{userName}, #{openHope}, #{role}, COALESCE(#{confirmed}, 'N'), #{remarks})
+        ON DUPLICATE KEY UPDATE
+            user_name = VALUES(user_name),
+            open_hope = VALUES(open_hope),
+            role = VALUES(role),
+            remarks = VALUES(remarks)
+    </insert>
+
+    <update id="updateRoleByDateAndUserId">
+        UPDATE selected_date
+        SET role = #{role}, remarks = COALESCE(#{remarks}, remarks)
+        WHERE date = #{date} AND user_id = #{userId}
+    </update>
+
+    <delete id="deleteByDateAndUserId">
+        DELETE FROM selected_date
+        WHERE date = #{date} AND user_id = #{userId}
+    </delete>
+
+    <update id="updateConfirmationByDate">
+        UPDATE selected_date
+        SET confirmed = #{confirmed}
+        WHERE date = #{date}
+    </update>
+
+</mapper>

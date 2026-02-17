@@ -1,0 +1,107 @@
+package com.showflix.api.schedule.application;
+
+import com.showflix.api.auth.infrastructure.security.CustomUserDetails;
+import com.showflix.api.schedule.application.command.MonthQueryCommand;
+import com.showflix.api.schedule.application.command.SaveSelectedDatesCommand;
+import com.showflix.api.schedule.domain.SelectedDate;
+import com.showflix.api.schedule.domain.SelectedDateRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Application Layer - 선택 날짜 유스케이스 서비스
+ */
+@Service
+public class SelectedDateService {
+
+    private final SelectedDateRepository selectedDateRepository;
+
+    public SelectedDateService(SelectedDateRepository selectedDateRepository) {
+        this.selectedDateRepository = selectedDateRepository;
+    }
+
+    /**
+     * 선택 날짜 저장
+     */
+    @Transactional
+    public void saveSelectedDates(SaveSelectedDatesCommand command) {
+        List<SelectedDate> list = new ArrayList<>();
+        for (Map.Entry<String, SaveSelectedDatesCommand.DateSelection> e : command.dateSelections().entrySet()) {
+            SelectedDate sd = new SelectedDate();
+            sd.setDate(e.getKey());
+            sd.setUserId(command.userId());
+            sd.setUserName(command.userName());
+            sd.setRole(command.role() != null ? command.role() : "");
+            sd.setOpenHope(e.getValue().openHope());
+            sd.setConfirmed("N");
+            list.add(sd);
+        }
+        selectedDateRepository.saveAll(list);
+    }
+
+    /**
+     * 월별 데이터 조회
+     */
+    @Transactional(readOnly = true)
+    public MonthResult getDatesByMonth(MonthQueryCommand command) {
+        LocalDate start = LocalDate.of(command.year(), command.month(), 1);
+        LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
+        List<SelectedDate> list = selectedDateRepository.findByDateBetween(start.toString(), end.toString());
+
+        boolean isAdmin = isCurrentUserAdmin();
+        String currentUserId = getCurrentUserId();
+
+        // 일반 사용자: 미확정은 본인 것만 노출
+        if (!isAdmin && currentUserId != null) {
+            list = list.stream()
+                    .filter(d -> {
+                        boolean confirmed = "Y".equalsIgnoreCase(d.getConfirmed());
+                        return confirmed || currentUserId.equals(d.getUserId());
+                    })
+                    .toList();
+        }
+
+        return new MonthResult(isAdmin, list);
+    }
+
+    public static class MonthResult {
+        private final boolean admin;
+        private final List<SelectedDate> data;
+
+        public MonthResult(boolean admin, List<SelectedDate> data) {
+            this.admin = admin;
+            this.data = data;
+        }
+
+        public boolean isAdmin() {
+            return admin;
+        }
+
+        public List<SelectedDate> getData() {
+            return data;
+        }
+    }
+
+    private boolean isCurrentUserAdmin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof CustomUserDetails cud)) {
+            return false;
+        }
+        return cud.getUser().isAdmin();
+    }
+
+    private String getCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof CustomUserDetails cud)) {
+            return null;
+        }
+        return cud.getUser().getUserid();
+    }
+}
