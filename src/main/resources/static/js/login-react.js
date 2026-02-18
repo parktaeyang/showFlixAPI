@@ -10,6 +10,24 @@ function LoginPage() {
   const [error, setError] = useState('');
   const [saveId, setSaveId] = useState(false);
 
+  // 이미 로그인된 사용자는 달력 페이지로 자동 이동
+  useEffect(() => {
+    // redirect: 'manual' → 서버가 302 리다이렉트를 보내도 자동으로 따라가지 않음
+    // (미인증 시 /index.html로 리다이렉트되어 res.ok=true가 되는 무한루프 방지)
+    fetch('/api/user/info', { credentials: 'same-origin', redirect: 'manual' })
+      .then(res => {
+        // res.type === 'opaqueredirect': 서버가 302 리다이렉트 → 미로그인 상태
+        // res.ok (200): 정상 인증된 상태
+        if (res.ok && res.type !== 'opaqueredirect') {
+          window.location.href = '/schedule/calendar';
+        }
+        // 그 외 (401, 403, opaqueredirect 등) → 로그인 페이지 그대로 표시
+      })
+      .catch(() => {
+        // 네트워크 오류 → 로그인 페이지 표시
+      });
+  }, []);
+
   // 페이지 로드 시 저장된 아이디 복원
   useEffect(() => {
     try {

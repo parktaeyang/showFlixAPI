@@ -24,7 +24,20 @@ public class CalendarController {
     @GetMapping("/schedule/calendar")
     public ResponseEntity<Resource> calendar() throws IOException {
         Resource resource = new ClassPathResource("static/schedule/calendar.html");
-        
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE)
+                .body(resource);
+    }
+
+    /**
+     * /admin/ 경로로 접근 시 관리자 페이지 HTML 파일 반환
+     * SecurityConfig에서 ADMIN 권한 체크 후 이 메서드가 실행됨
+     */
+    @GetMapping("/admin/")
+    public ResponseEntity<Resource> adminPage() throws IOException {
+        Resource resource = new ClassPathResource("static/admin/index.html");
+
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE)
                 .body(resource);

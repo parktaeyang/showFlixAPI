@@ -29,5 +29,30 @@ public class UserMyBatisRepository implements UserRepository {
     public List<User> findActors() {
         return userMapper.findActors();
     }
+
+    @Override
+    public List<User> findAll() {
+        return userMapper.findAll();
+    }
+
+    @Override
+    public void save(User user) {
+        userMapper.save(user);
+    }
+
+    @Override
+    public void update(User user) {
+        userMapper.update(user);
+    }
+
+    @Override
+    public void updatePassword(String userid, String encodedPassword) {
+        userMapper.updatePassword(userid, encodedPassword);
+    }
+
+    @Override
+    public void delete(String userid) {
+        userMapper.delete(userid);
+    }
 }
 

@@ -1,419 +1,680 @@
 /**
- * React 기반 캘린더 컴포넌트
+ * calendar-react.js
+ * CDN React (no JSX) 기반 달력 컴포넌트
+ *
+ * 핵심 흐름:
+ *  - 체크박스 선택 + 저장하기  → selected_date 저장 (일반/관리자 공통)
+ *  - 날짜 셀 클릭 (관리자 전용) → 어드민 팝업: 출근자 역할/비고 + 시간표 확정
  */
 
-const { useState, useEffect, useRef } = React;
+const e = React.createElement;
 
-/**
- * 사용자 드롭다운 메뉴 컴포넌트
- */
-function UserDropdown() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [userName, setUserName] = useState('');
-  const dropdownRef = useRef(null);
+// ────────────────────────────────────────────────────────────────────
+// 유틸
+// ────────────────────────────────────────────────────────────────────
+function pad2(n) { return String(n).padStart(2, '0'); }
 
-  // 컴포넌트 마운트 시 사용자 정보 가져오기
-  useEffect(() => {
-    fetch('/api/user/info')
-      .then(res => {
-        if (res.ok) {
-          return res.json();
-        }
-        return null;
-      })
-      .then(data => {
-        if (data) {
-          if (data.admin !== undefined) setIsAdmin(data.admin);
-          if (data.username) setUserName(data.username);
-        }
-      })
-      .catch(() => {
-        console.log('사용자 정보를 가져올 수 없습니다.');
-      });
-  }, []);
-
-  // 외부 클릭 시 드롭다운 닫기
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen]);
-
-  const toggleDropdown = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const handleLogout = () => {
-    // 로그아웃 처리
-    if (confirm('로그아웃 하시겠습니까?')) {
-      // POST 요청으로 로그아웃
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = '/logout';
-      document.body.appendChild(form);
-      form.submit();
-    }
-  };
-
-  return React.createElement('div', { 
-    className: 'user-menu-container',
-    ref: dropdownRef
-  },
-    React.createElement('div', { className: 'dropdown' },
-      React.createElement('button', {
-        className: 'btn user-menu-button',
-        type: 'button',
-        id: 'userDropdown',
-        onClick: toggleDropdown,
-        'aria-expanded': isOpen,
-        'aria-label': 'User Menu'
-      },
-        React.createElement('i', { className: 'fas fa-user-circle' })
-      ),
-      isOpen && React.createElement('ul', {
-        className: 'dropdown-menu dropdown-menu-end',
-        'aria-labelledby': 'userDropdown'
-      },
-        isAdmin && React.createElement('li', null,
-          React.createElement('a', {
-            className: 'dropdown-item',
-            href: '/admin'
-          },
-            React.createElement('i', { className: 'fas fa-cogs me-2' }),
-            ' 관리자 페이지'
-          )
-        ),
-        React.createElement('li', null,
-          React.createElement('a', {
-            className: 'dropdown-item',
-            href: '#',
-            onClick: (e) => {
-              e.preventDefault();
-              alert('내 정보 관리 기능은 추후 구현 예정입니다.');
-            }
-          },
-            React.createElement('i', { className: 'fas fa-user-edit me-2' }),
-            ' 내 정보 관리'
-          )
-        ),
-        React.createElement('li', null,
-          React.createElement('hr', { className: 'dropdown-divider' })
-        ),
-        React.createElement('li', null,
-          React.createElement('a', {
-            className: 'dropdown-item',
-            href: '#',
-            onClick: (e) => {
-              e.preventDefault();
-              handleLogout();
-            }
-          },
-            React.createElement('i', { className: 'fas fa-sign-out-alt me-2' }),
-            ' 로그아웃'
-          )
-        )
-      )
-    )
-  );
+function toDateStr(year, month, day) {
+    return `${year}-${pad2(month)}-${pad2(day)}`;
 }
 
-/**
- * 캘린더 메인 컴포넌트
- */
-function CalendarPage() {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDates, setSelectedDates] = useState(new Set());
-  const [monthData, setMonthData] = useState({ isAdmin: false, data: [] });
-  const [currentUserId, setCurrentUserId] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [saveLoading, setSaveLoading] = useState(false);
+function getDaysInMonth(year, month) {
+    return new Date(year, month, 0).getDate();
+}
 
-  // 인증 상태 확인
-  useEffect(() => {
-    fetch('/api/user/info')
-      .then(res => {
-        if (res.status === 401 || res.status === 403) {
-          window.location.href = '/index.html';
-          return null;
-        }
-        return res.json();
-      })
-      .then(data => {
-        if (data) {
-          setIsAuthenticated(true);
-          setCurrentUserId(data.userid || data.userId || null);
-        }
-        setIsLoading(false);
-      })
-      .catch(() => {
-        window.location.href = '/index.html';
-      });
-  }, []);
+// 해당 월 1일의 요일 (0=일,1=월,...,6=토)
+function getFirstDayOfWeek(year, month) {
+    return new Date(year, month - 1, 1).getDay();
+}
 
-  // 월별 데이터 조회
-  const fetchMonthData = (year, month, userId) => {
-    fetch(`/api/schedule/dates/month?year=${year}&month=${month}`)
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (data) {
-          setMonthData({ isAdmin: data.isAdmin, data: data.data || [] });
-          // 본인 출근일만 체크박스에 반영
-          const myDates = new Set(
-            (data.data || [])
-              .filter(d => d.userId === userId)
-              .map(d => d.date)
-          );
-          setSelectedDates(myDates);
-        }
-      })
-      .catch(err => console.error('월별 데이터 조회 실패:', err));
-  };
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
-  // currentDate 변경 시 월별 데이터 로드
-  useEffect(() => {
-    if (!isAuthenticated || !currentUserId) return;
-    const y = currentDate.getFullYear();
-    const m = currentDate.getMonth() + 1;
-    fetchMonthData(y, m, currentUserId);
-  }, [isAuthenticated, currentUserId, currentDate.getFullYear(), currentDate.getMonth()]);
+// 기본 시간표 슬롯
+const DEFAULT_TIME_SLOTS = [
+    '12:00', '12:30', '13:00', '13:30',
+    '14:00', '14:30', '15:00', '15:30',
+    '16:00', '16:30', '17:00', '17:30',
+    '18:00', '18:30', '19:00', '19:30',
+    '20:00', '20:30', '21:00',
+];
 
-  // 로딩 중이거나 인증되지 않은 경우 아무것도 렌더링하지 않음
-  if (isLoading || !isAuthenticated) {
-    return null;
-  }
+// ────────────────────────────────────────────────────────────────────
+// 사용자 드롭다운
+// ────────────────────────────────────────────────────────────────────
+function UserDropdown({ userName, isAdmin }) {
+    const [open, setOpen] = React.useState(false);
 
-  // 현재 년월 추출
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth(); // 0-11
-
-  /**
-   * 이전달 이동
-   */
-  const goToPreviousMonth = () => {
-    setCurrentDate(new Date(year, month - 1, 1));
-  };
-
-  /**
-   * 다음달 이동
-   */
-  const goToNextMonth = () => {
-    setCurrentDate(new Date(year, month + 1, 1));
-  };
-
-  /**
-   * 날짜 체크박스 토글
-   */
-  const toggleDate = (dateStr) => {
-    const newSelected = new Set(selectedDates);
-    if (newSelected.has(dateStr)) {
-      newSelected.delete(dateStr);
-    } else {
-      newSelected.add(dateStr);
-    }
-    setSelectedDates(newSelected);
-  };
-
-  /**
-   * 선택된 날짜 저장
-   */
-  const saveSelections = async () => {
-    if (selectedDates.size === 0) {
-      alert("저장할 날짜를 선택해주세요.");
-      return;
+    function handleLogout() {
+        fetch('/logout', { method: 'POST', credentials: 'same-origin' })
+            .then(() => { window.location.href = '/'; });
     }
 
-    setSaveLoading(true);
-    try {
-      const payload = {};
-      selectedDates.forEach(dateStr => {
-        payload[dateStr] = { openHope: false };
-      });
-      const res = await fetch('/api/schedule/dates/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) {
-        throw new Error(res.status === 401 ? '로그인이 필요합니다.' : '저장에 실패했습니다.');
-      }
-      alert("저장 완료");
-      fetchMonthData(year, month + 1, currentUserId);
-    } catch (error) {
-      console.error("저장 실패:", error);
-      alert("저장 실패: " + (error.message || "알 수 없는 오류"));
-    } finally {
-      setSaveLoading(false);
-    }
-  };
-
-  /**
-   * 캘린더 그리드 생성
-   */
-  const generateCalendar = () => {
-    const firstDay = new Date(year, month, 1);
-    const startDate = new Date(firstDay);
-    startDate.setDate(startDate.getDate() - startDate.getDay()); // 일요일로 맞춤
-
-    const days = [];
-    const current = new Date(startDate);
-
-    // 6주 * 7일 = 42일
-    for (let i = 0; i < 42; i++) {
-      const dateStr = formatDateString(
-        current.getFullYear(),
-        current.getMonth() + 1,
-        current.getDate()
-      );
-      
-      const isCurrentMonth = current.getMonth() === month;
-      const isToday = isSameDay(current, new Date());
-
-      days.push({
-        date: current.getDate(),
-        dateStr,
-        isCurrentMonth,
-        isToday,
-        fullDate: new Date(current)
-      });
-
-      current.setDate(current.getDate() + 1);
+    function handleAdminPage() {
+        window.location.href = '/admin/';
     }
 
-    return days;
-  };
-
-  /**
-   * 날짜 문자열 포맷 (YYYY-MM-DD)
-   */
-  const formatDateString = (year, month, date) => {
-    return `${year}-${month.toString().padStart(2, '0')}-${date.toString().padStart(2, '0')}`;
-  };
-
-  /**
-   * 같은 날인지 확인
-   */
-  const isSameDay = (date1, date2) => {
-    return (
-      date1.getFullYear() === date2.getFullYear() &&
-      date1.getMonth() === date2.getMonth() &&
-      date1.getDate() === date2.getDate()
+    return e('div', { className: 'user-dropdown', style: { position: 'relative' } },
+        e('button', {
+            className: 'user-btn',
+            onClick: () => setOpen(v => !v)
+        }, userName || '사용자', ' ▾'),
+        open && e('div', { className: 'dropdown-menu' },
+            isAdmin &&
+            e('button', { className: 'dropdown-item', onClick: handleAdminPage }, '관리자페이지'),
+            e('button', { className: 'dropdown-item', onClick: handleLogout }, '로그아웃')
+        )
     );
-  };
+}
 
-  /**
-   * 년월 표시 문자열
-   */
-  const getMonthYearString = () => {
-    return `${year}년 ${month + 1}월`;
-  };
+// ────────────────────────────────────────────────────────────────────
+// 관리자 팝업
+// ────────────────────────────────────────────────────────────────────
+function AdminPopup({ date, attendees, roleOptions, onClose, onSaved }) {
+    // attendees: SelectedDateResponse[] for this date
+    // 각 attendee: { date, userId, userName, role, confirmed, remarks }
+    // roleOptions: [{ value: "DOOR", label: "도어" }, ...]
 
-  const calendarDays = generateCalendar();
-  const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
+    const [roleMap, setRoleMap] = React.useState(() => {
+        const m = {};
+        attendees.forEach(a => { m[a.userId] = a.role || ''; });
+        return m;
+    });
+    const [remarksMap, setRemarksMap] = React.useState(() => {
+        const m = {};
+        attendees.forEach(a => { m[a.userId] = a.remarks || ''; });
+        return m;
+    });
 
-  // React.createElement를 사용하여 JSX 대신 작성
-  return React.createElement(React.Fragment, null,
-    React.createElement(UserDropdown, null),
-    React.createElement('div', { className: 'calendar-container' },
-    React.createElement('div', { className: 'calendar' },
-      // 캘린더 헤더
-      React.createElement('div', { className: 'calendar-header' },
-        React.createElement('button', { onClick: goToPreviousMonth }, '◀ 이전달'),
-        React.createElement('h2', { id: 'monthYear' }, getMonthYearString()),
-        React.createElement('button', { onClick: goToNextMonth }, '다음달 ▶')
-      ),
-      // 캘린더 테이블
-      React.createElement('table', { className: 'calendar-table' },
-        React.createElement('thead', null,
-          React.createElement('tr', null,
-            weekDays.map((day) => React.createElement('th', { key: day }, day))
-          )
-        ),
-        React.createElement('tbody', null,
-          Array.from({ length: 6 }).map((_, weekIndex) =>
-            React.createElement('tr', { key: weekIndex },
-              calendarDays.slice(weekIndex * 7, (weekIndex + 1) * 7).map((day) =>
-                React.createElement('td', {
-                  key: day.dateStr,
-                  style: {
-                    opacity: day.isCurrentMonth ? 1 : 0.3,
-                    backgroundColor: day.isToday ? 'rgba(139, 92, 246, 0.1)' : 'transparent'
-                  }
-                },
-                  React.createElement('span', { className: 'date-number' }, day.date),
-                  day.isCurrentMonth && React.createElement('div', { className: 'checkbox-wrap' },
-                    React.createElement('input', {
-                      type: 'checkbox',
-                      className: 'date-checkbox',
-                      checked: selectedDates.has(day.dateStr),
-                      onChange: () => toggleDate(day.dateStr)
-                    })
-                  )
+    const [slots, setSlots] = React.useState([]);
+    const [slotLoading, setSlotLoading] = React.useState(true);
+    // slotChecks: { [timeSlot]: { [userId]: boolean } }
+    const [slotChecks, setSlotChecks] = React.useState({});
+
+    const [saving, setSaving] = React.useState(false);
+    const [confirming, setConfirming] = React.useState(false);
+    const [msg, setMsg] = React.useState('');
+
+    // 시간표 로드
+    React.useEffect(() => {
+        setSlotLoading(true);
+        fetch(`/api/schedule/dates/time-slots?date=${date}`, { credentials: 'same-origin' })
+            .then(r => r.ok ? r.json() : [])
+            .then(data => {
+                const initialChecks = {};
+                DEFAULT_TIME_SLOTS.forEach(ts => {
+                    const found = data.find(d => d.timeSlot === ts);
+                    initialChecks[ts] = {};
+                    attendees.forEach(a => {
+                        if (found && found.performer) {
+                            initialChecks[ts][a.userId] = found.performer.split(',').map(s => s.trim()).includes(a.userName);
+                        } else {
+                            initialChecks[ts][a.userId] = false;
+                        }
+                    });
+                });
+                setSlots(data);
+                setSlotChecks(initialChecks);
+            })
+            .catch(() => {
+                const initialChecks = {};
+                DEFAULT_TIME_SLOTS.forEach(ts => {
+                    initialChecks[ts] = {};
+                    attendees.forEach(a => { initialChecks[ts][a.userId] = false; });
+                });
+                setSlotChecks(initialChecks);
+            })
+            .finally(() => setSlotLoading(false));
+    }, [date]);
+
+    function handleRoleChange(userId, val) {
+        setRoleMap(m => ({ ...m, [userId]: val }));
+    }
+    function handleRemarksChange(userId, val) {
+        setRemarksMap(m => ({ ...m, [userId]: val }));
+    }
+    function handleSlotCheck(timeSlot, userId, checked) {
+        setSlotChecks(prev => ({
+            ...prev,
+            [timeSlot]: { ...(prev[timeSlot] || {}), [userId]: checked }
+        }));
+    }
+
+    async function handleSaveRoles() {
+        setSaving(true);
+        setMsg('');
+        try {
+            const body = attendees.map(a => ({
+                date,
+                userId: a.userId,
+                role: roleMap[a.userId] || '',
+                remarks: remarksMap[a.userId] || ''
+            }));
+            const r = await fetch('/api/schedule/dates/roles/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify(body)
+            });
+            if (!r.ok) throw new Error('저장 실패');
+            setMsg('역할/비고 저장 완료');
+        } catch (err) {
+            setMsg(err.message || '저장 실패');
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    async function handleConfirm() {
+        setConfirming(true);
+        setMsg('');
+        try {
+            // 1) 시간표 슬롯 저장
+            const slotsPayload = DEFAULT_TIME_SLOTS
+                .map(ts => {
+                    const checkedUsers = attendees
+                        .filter(a => slotChecks[ts] && slotChecks[ts][a.userId])
+                        .map(a => a.userName);
+                    return { timeSlot: ts, theme: '', performer: checkedUsers.join(',') };
+                })
+                .filter(s => s.performer !== '');
+
+            const r1 = await fetch('/api/schedule/dates/time-slots/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ date, slots: slotsPayload })
+            });
+            if (!r1.ok) throw new Error('시간표 저장 실패');
+
+            // 2) 역할/비고 저장
+            const rolesBody = attendees.map(a => ({
+                date,
+                userId: a.userId,
+                role: roleMap[a.userId] || '',
+                remarks: remarksMap[a.userId] || ''
+            }));
+            const r2 = await fetch('/api/schedule/dates/roles/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify(rolesBody)
+            });
+            if (!r2.ok) throw new Error('역할 저장 실패');
+
+            // 3) 확정
+            const r3 = await fetch('/api/schedule/dates/confirm', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ date, confirmed: 'Y' })
+            });
+            if (!r3.ok) throw new Error('확정 처리 실패');
+
+            setMsg('✓ 스케줄 확정 완료!');
+            if (onSaved) onSaved();
+        } catch (err) {
+            setMsg(err.message || '오류 발생');
+        } finally {
+            setConfirming(false);
+        }
+    }
+
+    function handleOverlayClick(ev) {
+        if (ev.target === ev.currentTarget) onClose();
+    }
+
+    return e('div', { className: 'popup-overlay', onClick: handleOverlayClick },
+        e('div', { className: 'popup-box admin-popup' },
+
+            // 헤더
+            e('div', { className: 'popup-header' },
+                e('h3', { className: 'popup-title' }, `📅 ${date} 스케줄 관리`),
+                e('button', { className: 'popup-close', onClick: onClose }, '✕')
+            ),
+
+            e('div', { className: 'popup-body' },
+
+                // 출근자 목록
+                e('section', { className: 'admin-section' },
+                    e('h4', { className: 'section-title' }, '출근자 역할 & 비고'),
+                    attendees.length === 0
+                        ? e('p', { className: 'no-data' }, '등록된 출근자가 없습니다.')
+                        : e('div', { className: 'attendee-table-wrap' },
+                            e('table', { className: 'attendee-table' },
+                                e('thead', null,
+                                    e('tr', null,
+                                        e('th', null, '이름'),
+                                        e('th', null, '역할'),
+                                        e('th', null, '비고')
+                                    )
+                                ),
+                                e('tbody', null,
+                                    attendees.map(a =>
+                                        e('tr', { key: a.userId },
+                                            e('td', { className: 'attendee-name' }, a.userName),
+                                            e('td', null,
+                                                e('select', {
+                                                    className: 'role-select',
+                                                    value: roleMap[a.userId] || '',
+                                                    onChange: ev => handleRoleChange(a.userId, ev.target.value)
+                                                },
+                                                    e('option', { value: '' }, '-- 선택 --'),
+                                                    ...(roleOptions || []).map(opt =>
+                                                        e('option', { key: opt.value, value: opt.value }, opt.label)
+                                                    )
+                                                )
+                                            ),
+                                            e('td', null,
+                                                e('input', {
+                                                    type: 'text',
+                                                    className: 'remarks-input',
+                                                    value: remarksMap[a.userId] || '',
+                                                    onChange: ev => handleRemarksChange(a.userId, ev.target.value),
+                                                    placeholder: '비고'
+                                                })
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        ),
+                    e('div', { className: 'section-action' },
+                        e('button', {
+                            className: 'popup-btn popup-btn-secondary',
+                            onClick: handleSaveRoles,
+                            disabled: saving || attendees.length === 0
+                        }, saving ? '저장중...' : '역할/비고 저장')
+                    )
+                ),
+
+                e('hr', { className: 'section-divider' }),
+
+                // 시간표
+                e('section', { className: 'admin-section' },
+                    e('h4', { className: 'section-title' }, '시간표 (출연 체크 → 확정)'),
+                    slotLoading
+                        ? e('p', { className: 'no-data' }, '불러오는 중...')
+                        : attendees.length === 0
+                            ? e('p', { className: 'no-data' }, '출근자를 먼저 등록하세요.')
+                            : e('div', { className: 'time-slot-table-wrap' },
+                                e('table', { className: 'time-slot-table' },
+                                    e('thead', null,
+                                        e('tr', null,
+                                            e('th', { className: 'time-col' }, '시간'),
+                                            ...attendees.map(a =>
+                                                e('th', { key: a.userId, className: 'person-col' }, a.userName)
+                                            )
+                                        )
+                                    ),
+                                    e('tbody', null,
+                                        DEFAULT_TIME_SLOTS.map(ts =>
+                                            e('tr', { key: ts },
+                                                e('td', { className: 'time-cell' }, ts),
+                                                ...attendees.map(a =>
+                                                    e('td', { key: a.userId, className: 'check-cell' },
+                                                        e('input', {
+                                                            type: 'checkbox',
+                                                            checked: !!(slotChecks[ts] && slotChecks[ts][a.userId]),
+                                                            onChange: ev => handleSlotCheck(ts, a.userId, ev.target.checked)
+                                                        })
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            )
                 )
-              )
+            ),
+
+            // 푸터
+            e('div', { className: 'popup-footer' },
+                msg && e('span', { className: msg.includes('완료') ? 'popup-msg success' : 'popup-msg error' }, msg),
+                e('button', { className: 'popup-btn popup-btn-danger', onClick: onClose }, '닫기'),
+                e('button', {
+                    className: 'popup-btn popup-btn-primary',
+                    onClick: handleConfirm,
+                    disabled: confirming || attendees.length === 0
+                }, confirming ? '확정 중...' : '✓ 스케줄 확정')
             )
-          )
         )
-      ),
-      // 저장 버튼
-      React.createElement('button', {
-        className: 'save-btn',
-        onClick: saveSelections,
-        disabled: saveLoading
-      }, saveLoading ? '저장 중...' : '✅ 저장하기')
-    ),
-    // 출근자 섹션
-    React.createElement('div', { className: 'attendee-section' },
-      React.createElement('div', { className: 'attendee-header' },
-        React.createElement('h3', { className: 'attendee-title' }, '이번 달 출근자'),
-        React.createElement('span', { className: 'attendee-month' }, getMonthYearString())
-      ),
-      monthData.data.length === 0
-        ? React.createElement('div', { className: 'attendee-empty' }, '이번 달 출근 예정자가 없습니다.')
-        : React.createElement('ul', { className: 'attendee-list' },
-            (() => {
-              const byUser = {};
-              monthData.data.forEach(d => {
-                const uid = d.userId || d.user_id || 'unknown';
-                if (!byUser[uid]) byUser[uid] = { name: d.userName || d.user_name || uid, dates: [] };
-                if (!byUser[uid].dates.includes(d.date)) byUser[uid].dates.push(d.date);
-              });
-              return Object.entries(byUser).map(([uid, info]) =>
-                React.createElement('li', { key: uid, className: 'attendee-item' },
-                  React.createElement('span', { className: 'attendee-name' }, info.name),
-                  React.createElement('span', { className: 'attendee-dates' },
-                    info.dates.sort().join(', ')
-                  )
-                )
-              );
-            })()
-          )
-    )
-    )
-  );
+    );
 }
 
-// React 렌더링 - DOM이 준비된 후 실행
-document.addEventListener('DOMContentLoaded', () => {
-  const root = document.getElementById('root');
-  if (root) {
-    const rootElement = ReactDOM.createRoot
-      ? ReactDOM.createRoot(root)
-      : { render: (el) => ReactDOM.render(el, root) };
+// ────────────────────────────────────────────────────────────────────
+// 달력 셀
+// ────────────────────────────────────────────────────────────────────
+function CalendarCell({ year, month, day, isToday, isSelected, cellData, isAdmin, onCellClick, onCheck }) {
+    const dateStr = toDateStr(year, month, day);
+    const dow = new Date(year, month - 1, day).getDay();
+    const isSunday = dow === 0;
+    const isSaturday = dow === 6;
 
-    rootElement.render(
-      React.createElement(CalendarPage, null)
+    const confirmedPeople = cellData.filter(d => d.confirmed === 'Y');
+    const unconfirmedPeople = cellData.filter(d => d.confirmed !== 'Y');
+
+    let cellClass = 'cal-cell';
+    if (isToday) cellClass += ' today';
+    if (isSunday) cellClass += ' sunday';
+    if (isSaturday) cellClass += ' saturday';
+
+    function handleCellAreaClick(ev) {
+        if (isAdmin) onCellClick(dateStr);
+    }
+
+    return e('td', {
+        className: cellClass,
+        onClick: isAdmin ? handleCellAreaClick : undefined,
+        style: isAdmin ? { cursor: 'pointer' } : {}
+    },
+        e('div', { className: 'cell-header' },
+            e('span', { className: 'day-num' }, day),
+            e('input', {
+                type: 'checkbox',
+                className: 'date-check',
+                checked: isSelected,
+                onChange: ev => { ev.stopPropagation(); onCheck(dateStr, ev.target.checked); },
+                onClick: ev => ev.stopPropagation()
+            })
+        ),
+        isSelected && e('div', { className: 'my-badge' }, '✓'),
+        e('div', { className: 'badges-wrap' },
+            confirmedPeople.map(d =>
+                e('span', { key: d.userId, className: 'person-badge confirmed', title: d.role || '' }, d.userName)
+            ),
+            unconfirmedPeople.map(d =>
+                e('span', { key: d.userId, className: 'person-badge unconfirmed', title: '미확정' }, d.userName)
+            )
+        )
     );
-  }
-});
+}
+
+// ────────────────────────────────────────────────────────────────────
+// 월별 출근자 목록 (하단)
+// ────────────────────────────────────────────────────────────────────
+function AttendeeSection({ monthData }) {
+    const byPerson = {};
+    monthData.forEach(d => {
+        if (!byPerson[d.userName]) byPerson[d.userName] = { confirmed: [], unconfirmed: [] };
+        if (d.confirmed === 'Y') byPerson[d.userName].confirmed.push(d.date);
+        else byPerson[d.userName].unconfirmed.push(d.date);
+    });
+
+    const names = Object.keys(byPerson).sort();
+    if (names.length === 0) return null;
+
+    return e('div', { className: 'attendee-section' },
+        e('h3', { className: 'attendee-title' }, '이번 달 스케줄'),
+        e('div', { className: 'attendee-list' },
+            names.map(name =>
+                e('div', { key: name, className: 'attendee-row' },
+                    e('span', { className: 'attendee-name-label' }, name),
+                    e('div', { className: 'attendee-dates' },
+                        byPerson[name].confirmed.map(d =>
+                            e('span', { key: d, className: 'date-tag confirmed-tag' }, d.slice(5))
+                        ),
+                        byPerson[name].unconfirmed.map(d =>
+                            e('span', { key: d, className: 'date-tag unconfirmed-tag' }, d.slice(5))
+                        )
+                    )
+                )
+            )
+        )
+    );
+}
+
+// ────────────────────────────────────────────────────────────────────
+// 메인 CalendarPage
+// ────────────────────────────────────────────────────────────────────
+function CalendarPage() {
+    const today = new Date();
+    const [year, setYear] = React.useState(today.getFullYear());
+    const [month, setMonth] = React.useState(today.getMonth() + 1);
+
+    const [userInfo, setUserInfo] = React.useState(null);
+    const [monthData, setMonthData] = React.useState([]);
+    const [isAdmin, setIsAdmin] = React.useState(false);
+
+    const [checkedDates, setCheckedDates] = React.useState(new Set());
+    const [myDates, setMyDates] = React.useState(new Set());
+
+    const [roleOptions, setRoleOptions] = React.useState([]);
+
+    const [popupDate, setPopupDate] = React.useState(null);
+    const [popupAttendees, setPopupAttendees] = React.useState([]);
+
+    const [loading, setLoading] = React.useState(false);
+    const [saving, setSaving] = React.useState(false);
+    const [saveMsg, setSaveMsg] = React.useState('');
+
+    // 사용자 정보 로드
+    // UserInfoResponse: { userid, username, admin }
+    React.useEffect(() => {
+        fetch('/api/user/info', { credentials: 'same-origin' })
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                if (data) {
+                    // 필드명 정규화: userid→userId, username→userName
+                    setUserInfo({
+                        userId: data.userid || data.userId || '',
+                        userName: data.username || data.userName || '',
+                        admin: data.admin || false
+                    });
+                }
+            })
+            .catch(() => {});
+    }, []);
+
+    // 역할 목록 로드 (드롭다운용)
+    React.useEffect(() => {
+        fetch('/api/schedule/dates/roles', { credentials: 'same-origin' })
+            .then(r => r.ok ? r.json() : [])
+            .then(data => setRoleOptions(data))
+            .catch(() => {});
+    }, []);
+
+    // 월 데이터 로드
+    React.useEffect(() => {
+        loadMonthData();
+    }, [year, month]);
+
+    function loadMonthData() {
+        setLoading(true);
+        setSaveMsg('');
+        fetch(`/api/schedule/dates/month?year=${year}&month=${month}`, { credentials: 'same-origin' })
+            .then(r => r.ok ? r.json() : { admin: false, dates: [] })
+            .then(data => {
+                // MonthDataResponse: { isAdmin: boolean, data: [...] }
+                const dates = data.data || [];
+                setMonthData(dates);
+                setIsAdmin(data.isAdmin || false);
+            })
+            .catch(() => {})
+            .finally(() => setLoading(false));
+    }
+
+    // userInfo 변경 시 내 날짜 갱신
+    React.useEffect(() => {
+        if (userInfo && monthData.length > 0) {
+            syncMyDates(monthData, userInfo.userId);
+        }
+    }, [userInfo]);
+
+    // monthData 변경 시 내 날짜 갱신
+    React.useEffect(() => {
+        if (userInfo) {
+            syncMyDates(monthData, userInfo.userId);
+        }
+    }, [monthData]);
+
+    function syncMyDates(data, userId) {
+        const mine = new Set(data.filter(d => d.userId === userId).map(d => d.date));
+        setMyDates(mine);
+        setCheckedDates(new Set(mine));
+    }
+
+    function prevMonth() {
+        if (month === 1) { setYear(y => y - 1); setMonth(12); }
+        else setMonth(m => m - 1);
+    }
+    function nextMonth() {
+        if (month === 12) { setYear(y => y + 1); setMonth(1); }
+        else setMonth(m => m + 1);
+    }
+
+    function handleCheck(dateStr, checked) {
+        setCheckedDates(prev => {
+            const next = new Set(prev);
+            if (checked) next.add(dateStr);
+            else next.delete(dateStr);
+            return next;
+        });
+    }
+
+    async function handleSave() {
+        if (!userInfo) return;
+        setSaving(true);
+        setSaveMsg('');
+        try {
+            const toAdd = [...checkedDates].filter(d => !myDates.has(d));
+            const toRemove = [...myDates].filter(d => !checkedDates.has(d));
+
+            if (toAdd.length > 0) {
+                const payload = {};
+                toAdd.forEach(d => { payload[d] = {}; });
+                const r = await fetch('/api/schedule/dates/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(payload)
+                });
+                if (!r.ok) throw new Error('저장 실패');
+            }
+
+            for (const d of toRemove) {
+                const r = await fetch(`/api/schedule/dates?date=${d}`, {
+                    method: 'DELETE',
+                    credentials: 'same-origin'
+                });
+                if (!r.ok) throw new Error('삭제 실패');
+            }
+
+            setSaveMsg('저장 완료!');
+            loadMonthData();
+        } catch (err) {
+            setSaveMsg(err.message || '오류 발생');
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    function handleCellClick(dateStr) {
+        if (!isAdmin) return;
+        const attendees = monthData.filter(d => d.date === dateStr);
+        setPopupDate(dateStr);
+        setPopupAttendees(attendees);
+    }
+
+    function closePopup() {
+        setPopupDate(null);
+        setPopupAttendees([]);
+    }
+
+    function handlePopupSaved() {
+        loadMonthData();
+    }
+
+    // 달력 계산
+    const daysInMonth = getDaysInMonth(year, month);
+    const firstDay = getFirstDayOfWeek(year, month);
+    const todayStr = toDateStr(today.getFullYear(), today.getMonth() + 1, today.getDate());
+
+    const dataByDate = {};
+    monthData.forEach(d => {
+        if (!dataByDate[d.date]) dataByDate[d.date] = [];
+        dataByDate[d.date].push(d);
+    });
+
+    const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+    const cells = [];
+    for (let i = 0; i < totalCells; i++) {
+        const dayNum = i - firstDay + 1;
+        if (dayNum < 1 || dayNum > daysInMonth) {
+            cells.push(e('td', { key: `empty-${i}`, className: 'cal-cell empty' }));
+        } else {
+            const dateStr = toDateStr(year, month, dayNum);
+            cells.push(e(CalendarCell, {
+                key: dateStr,
+                year, month, day: dayNum,
+                isToday: dateStr === todayStr,
+                isSelected: checkedDates.has(dateStr),
+                cellData: dataByDate[dateStr] || [],
+                isAdmin,
+                onCellClick: handleCellClick,
+                onCheck: handleCheck
+            }));
+        }
+    }
+
+    const rows = [];
+    for (let i = 0; i < cells.length; i += 7) {
+        rows.push(e('tr', { key: `row-${i}` }, cells.slice(i, i + 7)));
+    }
+
+    return e('div', { className: 'cal-wrap' },
+
+        e('div', { className: 'cal-top-bar' },
+            e('h1', { className: 'cal-logo' }, 'ShowFlix'),
+            userInfo && e(UserDropdown, { userName: userInfo.userName, isAdmin: userInfo.admin })
+        ),
+
+        e('div', { className: 'cal-nav' },
+            e('button', { className: 'nav-btn', onClick: prevMonth }, '‹'),
+            e('span', { className: 'cal-month-label' }, `${year}년 ${month}월`),
+            e('button', { className: 'nav-btn', onClick: nextMonth }, '›')
+        ),
+
+        loading
+            ? e('div', { className: 'loading-wrap' }, '불러오는 중...')
+            : e('div', { className: 'cal-table-wrap' },
+                e('table', { className: 'cal-table' },
+                    e('thead', null,
+                        e('tr', null,
+                            WEEKDAYS.map((w, i) =>
+                                e('th', {
+                                    key: w,
+                                    className: i === 0 ? 'weekday sunday' : i === 6 ? 'weekday saturday' : 'weekday'
+                                }, w)
+                            )
+                        )
+                    ),
+                    e('tbody', null, ...rows)
+                )
+            ),
+
+        e('div', { className: 'save-bar' },
+            saveMsg && e('span', { className: 'save-msg' }, saveMsg),
+            e('button', {
+                className: 'save-btn',
+                onClick: handleSave,
+                disabled: saving
+            }, saving ? '저장 중...' : '저장하기')
+        ),
+
+        popupDate && e(AdminPopup, {
+            date: popupDate,
+            attendees: popupAttendees,
+            roleOptions,
+            onClose: closePopup,
+            onSaved: handlePopupSaved
+        }),
+
+        e(AttendeeSection, { monthData })
+    );
+}
+
+// ────────────────────────────────────────────────────────────────────
+// 마운트
+// ────────────────────────────────────────────────────────────────────
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(e(CalendarPage));

@@ -13,5 +13,16 @@ public interface UserRepository {
     // 배우(비관리자) 목록 조회 - Schedule 도메인에서 스케줄 테이블 열 구성에 사용
     List<User> findActors();
 
+    // ── 관리자 계정관리용 ──────────────────────────────────────
+    List<User> findAll();
+
+    void save(User user);
+
+    void update(User user);
+
+    void updatePassword(String userid, String encodedPassword);
+
+    void delete(String userid);
+
 }
 
