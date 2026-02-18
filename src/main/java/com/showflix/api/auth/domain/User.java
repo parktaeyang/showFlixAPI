@@ -10,6 +10,7 @@ public class User {
     private String username;
     private String password; // 해시된 비밀번호
     private boolean admin;
+    private String recentRole; // 가장 최근 selected_date의 role (관리자 페이지용)
 
     public String getUserid() {
         return userid;
@@ -41,6 +42,14 @@ public class User {
 
     public void setAdmin(boolean admin) {
         this.admin = admin;
+    }
+
+    public String getRecentRole() {
+        return recentRole;
+    }
+
+    public void setRecentRole(String recentRole) {
+        this.recentRole = recentRole;
     }
 }
 

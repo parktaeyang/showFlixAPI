@@ -28,7 +28,7 @@ public class AdminUserController {
     }
 
     // DTO 정의 (record)
-    record UserSummaryResponse(String userid, String username, boolean admin) {}
+    record UserSummaryResponse(String userid, String username, boolean admin, String role) {}
     record CreateUserRequest(String userid, String username, String password, boolean admin) {}
     record UpdateUserRequest(String username, boolean admin) {}
     record ChangePasswordRequest(String newPassword) {}
@@ -41,7 +41,12 @@ public class AdminUserController {
     public ResponseEntity<List<UserSummaryResponse>> getAllUsers() {
         List<User> users = adminUserService.getAllUsers();
         List<UserSummaryResponse> responses = users.stream()
-                .map(u -> new UserSummaryResponse(u.getUserid(), u.getUsername(), u.isAdmin()))
+                .map(u -> new UserSummaryResponse(
+                        u.getUserid(),
+                        u.getUsername(),
+                        u.isAdmin(),
+                        u.getRecentRole()  // 가장 최근 스케줄 역할 (없으면 null)
+                ))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
     }

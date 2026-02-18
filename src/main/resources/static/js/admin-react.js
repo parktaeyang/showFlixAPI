@@ -7,10 +7,11 @@
  *  ├── AdminHeader
  *  ├── TabBar
  *  └── UserManagementTab (계정관리)
+ *      ├── AddUserForm (신규 계정 추가 - 상단)
+ *      ├── 계정 목록 헤더 (제목 + 역할 필터)
  *      ├── 사용자 카드 목록
  *      ├── EditUserPopup (수정 팝업)
- *      ├── ChangePasswordPopup (비밀번호 변경 팝업)
- *      └── 신규 계정 추가 인라인 폼
+ *      └── ChangePasswordPopup (비밀번호 변경 팝업)
  */
 
 const e = React.createElement;
@@ -18,6 +19,33 @@ const e = React.createElement;
 // ────────────────────────────────────────────────────────────────────
 // 유틸
 // ────────────────────────────────────────────────────────────────────
+
+// ScheduleRole enum 코드 → 한국어 표시명 매핑
+const ROLE_DISPLAY = {
+    DOOR:    '도어',
+    HOLEMAN: '홀맨',
+    OPER:    '오퍼',
+    HELPER:  '헬퍼',
+    KITCHEN: '주방',
+    MALE1:   '남1',
+    MALE2:   '남2',
+    MALE3:   '남3',
+    FEMALE1: '여1',
+    FEMALE2: '여2',
+    FEMALE3: '여3',
+};
+
+function getRoleDisplay(roleCode) {
+    if (!roleCode) return null;
+    return ROLE_DISPLAY[roleCode] || roleCode;
+}
+
+// 필터용 옵션 목록
+const ROLE_FILTER_OPTIONS = [
+    { value: 'ALL',  label: '전체' },
+    { value: 'NONE', label: '역할없음' },
+    ...Object.entries(ROLE_DISPLAY).map(([value, label]) => ({ value, label })),
+];
 
 /**
  * fetch wrapper - JSON 요청/응답
@@ -49,7 +77,7 @@ async function apiFetch(url, options = {}) {
 // ────────────────────────────────────────────────────────────────────
 function AdminHeader({ userName }) {
     function handleBack() {
-        window.location.href = '/schedule/calendar.html';
+        window.location.href = '/schedule/calendar';
     }
 
     return e('header', { className: 'admin-header' },
@@ -222,13 +250,19 @@ function ChangePasswordPopup({ user, onClose, onSaved }) {
 // ────────────────────────────────────────────────────────────────────
 function UserCard({ user, currentUserid, onEdit, onChangePassword, onDelete }) {
     const isMe = user.userid === currentUserid;
+    const roleDisplay = getRoleDisplay(user.role);
 
     return e('div', { className: 'user-card' },
         e('div', { className: 'user-card-top' },
             e('span', { className: 'user-card-id' }, user.userid),
             e('span', { className: 'user-card-name' }, user.username),
-            e('span', { className: 'badge ' + (user.admin ? 'badge-admin' : 'badge-user') },
-                user.admin ? '관리자' : '일반'
+            e('div', { className: 'user-card-badges' },
+                // 역할 뱃지 (스케줄 역할이 있을 때만)
+                roleDisplay && e('span', { className: 'badge badge-role' }, roleDisplay),
+                // 관리자/일반 뱃지
+                e('span', { className: 'badge ' + (user.admin ? 'badge-admin' : 'badge-user') },
+                    user.admin ? '관리자' : '일반'
+                )
             )
         ),
         e('div', { className: 'user-card-actions' },
@@ -337,6 +371,7 @@ function UserManagementTab({ currentUserid }) {
     const [loading, setLoading] = React.useState(true);
     const [editTarget, setEditTarget] = React.useState(null);
     const [pwTarget, setPwTarget] = React.useState(null);
+    const [roleFilter, setRoleFilter] = React.useState('ALL');
 
     function loadUsers() {
         setLoading(true);
@@ -369,23 +404,49 @@ function UserManagementTab({ currentUserid }) {
         alert('비밀번호가 변경되었습니다.');
     }
 
+    // 역할 필터 적용
+    const filteredUsers = users.filter(user => {
+        if (roleFilter === 'ALL') return true;
+        if (roleFilter === 'NONE') return !user.role;
+        return user.role === roleFilter;
+    });
+
     return e('div', { className: 'admin-content' },
-        e('div', { className: 'section-title' }, '계정 목록'),
+
+        // ① 신규 계정 추가 폼 (최상단)
+        e(AddUserForm, { onAdded: loadUsers }),
+
+        // ② 계정 목록 헤더: 제목(좌) + 역할 필터(우)
+        e('div', { className: 'list-header' },
+            e('div', { className: 'section-title' }, '계정 목록'),
+            e('select', {
+                className: 'role-filter-select',
+                value: roleFilter,
+                onChange: ev => setRoleFilter(ev.target.value),
+            },
+                ROLE_FILTER_OPTIONS.map(opt =>
+                    e('option', { key: opt.value, value: opt.value }, opt.label)
+                )
+            )
+        ),
+
+        // ③ 사용자 카드 목록
         loading
             ? e('div', { className: 'loading-text' }, '불러오는 중...')
-            : e('div', { className: 'user-list' },
-                ...users.map(user =>
-                    e(UserCard, {
-                        key: user.userid,
-                        user,
-                        currentUserid,
-                        onEdit: u => setEditTarget(u),
-                        onChangePassword: u => setPwTarget(u),
-                        onDelete: handleDelete,
-                    })
-                )
-            ),
-        e(AddUserForm, { onAdded: loadUsers }),
+            : filteredUsers.length === 0
+                ? e('div', { className: 'loading-text' }, '해당 역할의 계정이 없습니다.')
+                : e('div', { className: 'user-list' },
+                    ...filteredUsers.map(user =>
+                        e(UserCard, {
+                            key: user.userid,
+                            user,
+                            currentUserid,
+                            onEdit: u => setEditTarget(u),
+                            onChangePassword: u => setPwTarget(u),
+                            onDelete: handleDelete,
+                        })
+                    )
+                ),
 
         // 수정 팝업
         editTarget && e(EditUserPopup, {
@@ -414,7 +475,6 @@ function AdminPage() {
         apiFetch('/api/user/info')
             .then(data => {
                 if (data) {
-                    // 필드명 정규화
                     setUserInfo({
                         userid: data.userid || data.userId || '',
                         userName: data.username || data.userName || '',

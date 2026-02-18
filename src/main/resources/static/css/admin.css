@@ -119,6 +119,37 @@ body {
 }
 
 /* ==========================================
+   계정 목록 헤더 (제목 + 역할 필터)
+   ========================================== */
+.list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 20px;
+    margin-bottom: 12px;
+}
+
+.list-header .section-title {
+    margin-bottom: 0;
+}
+
+.role-filter-select {
+    padding: 6px 10px;
+    border: 1.5px solid #e8e4ff;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    color: #4b5563;
+    background: #faf9ff;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.role-filter-select:focus {
+    border-color: #8b5cf6;
+}
+
+/* ==========================================
    사용자 카드 목록
    ========================================== */
 .user-list {
@@ -139,8 +170,17 @@ body {
 .user-card-top {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.user-card-badges {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    flex-shrink: 0;
 }
 
 .user-card-id {
@@ -175,6 +215,11 @@ body {
 .badge-user {
     background: #f3f4f6;
     color: #6b7280;
+}
+
+.badge-role {
+    background: #fef3c7;
+    color: #92400e;
 }
 
 .user-card-actions {
