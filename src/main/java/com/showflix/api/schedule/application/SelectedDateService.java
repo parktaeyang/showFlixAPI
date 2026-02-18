@@ -71,6 +71,22 @@ public class SelectedDateService {
         return new MonthResult(isAdmin, list);
     }
 
+    /**
+     * 선택 날짜 단건 삭제 (본인 것만)
+     */
+    @Transactional
+    public void deleteSelectedDate(String date, String userId) {
+        selectedDateRepository.deleteByDateAndUserId(date, userId);
+    }
+
+    /**
+     * 특정 날짜의 특정 사용자에 대한 역할/비고 업데이트 (관리자용)
+     */
+    @Transactional
+    public void updateRoleAndRemarks(String date, String userId, String role, String remarks) {
+        selectedDateRepository.updateRoleByDateAndUserId(date, userId, role, remarks);
+    }
+
     public static class MonthResult {
         private final boolean admin;
         private final List<SelectedDate> data;

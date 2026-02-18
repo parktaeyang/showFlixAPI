@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.showflix.api.schedule.mapper.ScheduleTimeSlotMapper">
+
+    <resultMap id="TimeSlotResultMap" type="com.showflix.api.schedule.domain.ScheduleTimeSlot">
+        <result property="scheduleDate" column="schedule_date"/>
+        <result property="timeSlot"     column="time_slot"/>
+        <result property="theme"        column="theme"/>
+        <result property="performer"    column="performer"/>
+        <result property="confirmed"    column="confirmed"/>
+    </resultMap>
+
+    <!-- 특정 날짜의 시간표 전체 조회 (시간 오름차순) -->
+    <select id="findByScheduleDate" resultMap="TimeSlotResultMap">
+        SELECT schedule_date, time_slot, theme, performer, confirmed
+        FROM schedule_time_slot
+        WHERE schedule_date = #{scheduleDate}
+        ORDER BY time_slot ASC
+    </select>
+
+    <!-- 시간표 저장 (ON DUPLICATE KEY UPDATE) -->
+    <insert id="save">
+        INSERT INTO schedule_time_slot (schedule_date, time_slot, theme, performer, confirmed)
+        VALUES (#{scheduleDate}, #{timeSlot}, #{theme}, #{performer}, #{confirmed})
+        ON DUPLICATE KEY UPDATE
+            theme     = VALUES(theme),
+            performer = VALUES(performer),
+            confirmed = VALUES(confirmed)
+    </insert>
+
+    <!-- 특정 날짜 시간표 전체 삭제 -->
+    <delete id="deleteByScheduleDate">
+        DELETE FROM schedule_time_slot
+        WHERE schedule_date = #{scheduleDate}
+    </delete>
+
+    <!-- 특정 날짜 confirmed 일괄 변경 -->
+    <update id="updateConfirmationByDate">
+        UPDATE schedule_time_slot
+        SET confirmed = #{confirmed}
+        WHERE schedule_date = #{scheduleDate}
+    </update>
+
+</mapper>
