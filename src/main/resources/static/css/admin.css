@@ -445,3 +445,110 @@ body {
     padding: 40px 0;
     font-size: 0.9rem;
 }
+
+/* ==========================================
+   특수예약 - 추가 버튼
+   ========================================== */
+.btn-add-special {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, #6b46c1, #8b5cf6);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-bottom: 4px;
+}
+
+.btn-add-special:hover {
+    opacity: 0.9;
+}
+
+.btn-add-special:active {
+    transform: scale(0.98);
+}
+
+/* ==========================================
+   특수예약 - 카드 목록
+   ========================================== */
+.special-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.special-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 14px 16px;
+    box-shadow: 0 2px 8px rgba(107, 70, 193, 0.08);
+    border: 1px solid #f0eeff;
+}
+
+.special-card-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.special-date {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #6b46c1;
+    background: #f5f3ff;
+    border-radius: 6px;
+    padding: 2px 8px;
+}
+
+.special-time {
+    font-size: 0.82rem;
+    color: #6b7280;
+}
+
+.special-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #2d2d3a;
+}
+
+.special-count {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #0369a1;
+    background: #e0f2fe;
+    border-radius: 20px;
+    padding: 2px 10px;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.special-card-notes {
+    font-size: 0.82rem;
+    color: #6b7280;
+    background: #faf9ff;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.special-card-actions {
+    display: flex;
+    gap: 6px;
+}
+
+/* ==========================================
+   특수예약 - 모달 textarea
+   ========================================== */
+.form-textarea {
+    resize: vertical;
+    min-height: 60px;
+    font-family: inherit;
+    line-height: 1.5;
+}

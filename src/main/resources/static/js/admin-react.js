@@ -6,12 +6,16 @@
  *  AdminPage
  *  ├── AdminHeader
  *  ├── TabBar
- *  └── UserManagementTab (계정관리)
- *      ├── AddUserForm (신규 계정 추가 - 상단)
- *      ├── 계정 목록 헤더 (제목 + 역할 필터)
- *      ├── 사용자 카드 목록
- *      ├── EditUserPopup (수정 팝업)
- *      └── ChangePasswordPopup (비밀번호 변경 팝업)
+ *  ├── UserManagementTab (계정관리)
+ *  │   ├── AddUserForm (신규 계정 추가 - 상단)
+ *  │   ├── 계정 목록 헤더 (제목 + 역할 필터)
+ *  │   ├── 사용자 카드 목록
+ *  │   ├── EditUserPopup (수정 팝업)
+ *  │   └── ChangePasswordPopup (비밀번호 변경 팝업)
+ *  └── SpecialReservationTab (특수예약관리)
+ *      ├── 특수예약 추가 버튼 → AddSpecialPopup (모달)
+ *      ├── 특수예약 목록 (카드형)
+ *      └── EditSpecialPopup (수정 모달)
  */
 
 const e = React.createElement;
@@ -97,6 +101,7 @@ function AdminHeader({ userName }) {
 // ────────────────────────────────────────────────────────────────────
 const TABS = [
     { key: 'users', label: '계정관리' },
+    { key: 'special', label: '특수예약관리' },
 ];
 
 function TabBar({ activeTab, onTabChange }) {
@@ -465,6 +470,327 @@ function UserManagementTab({ currentUserid }) {
 }
 
 // ────────────────────────────────────────────────────────────────────
+// AddSpecialPopup - 특수예약 추가 모달
+// ────────────────────────────────────────────────────────────────────
+function AddSpecialPopup({ onClose, onSaved }) {
+    const [reservationDate, setReservationDate] = React.useState('');
+    const [reservationTime, setReservationTime] = React.useState('');
+    const [customerName, setCustomerName] = React.useState('');
+    const [peopleCount, setPeopleCount] = React.useState('');
+    const [contactInfo, setContactInfo] = React.useState('');
+    const [notes, setNotes] = React.useState('');
+    const [error, setError] = React.useState('');
+    const [saving, setSaving] = React.useState(false);
+
+    async function handleSave() {
+        if (!reservationDate.trim()) {
+            setError('예약 날짜를 입력해주세요.');
+            return;
+        }
+        if (!customerName.trim()) {
+            setError('예약자명을 입력해주세요.');
+            return;
+        }
+        setSaving(true);
+        setError('');
+        try {
+            await apiFetch('/api/admin/special', {
+                method: 'POST',
+                body: JSON.stringify({
+                    reservationDate: reservationDate.trim(),
+                    reservationTime: reservationTime.trim(),
+                    customerName: customerName.trim(),
+                    peopleCount: peopleCount ? parseInt(peopleCount, 10) : null,
+                    contactInfo: contactInfo.trim(),
+                    notes: notes.trim(),
+                }),
+            });
+            onSaved();
+        } catch (err) {
+            setError(err.message || '추가 중 오류가 발생했습니다.');
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    return e('div', { className: 'popup-overlay', onClick: onClose },
+        e('div', { className: 'popup-box', onClick: ev => ev.stopPropagation() },
+            e('div', { className: 'popup-title' }, '특수예약 추가'),
+            error && e('div', { className: 'msg msg-error' }, error),
+            e('div', { className: 'form-row' },
+                e('input', {
+                    className: 'form-input',
+                    type: 'date',
+                    placeholder: '예약 날짜',
+                    value: reservationDate,
+                    onChange: ev => setReservationDate(ev.target.value),
+                }),
+                e('input', {
+                    className: 'form-input',
+                    type: 'time',
+                    placeholder: '예약 시간',
+                    value: reservationTime,
+                    onChange: ev => setReservationTime(ev.target.value),
+                }),
+                e('input', {
+                    className: 'form-input',
+                    type: 'text',
+                    placeholder: '예약자명',
+                    value: customerName,
+                    onChange: ev => setCustomerName(ev.target.value),
+                }),
+                e('input', {
+                    className: 'form-input',
+                    type: 'number',
+                    placeholder: '인원수',
+                    value: peopleCount,
+                    onChange: ev => setPeopleCount(ev.target.value),
+                }),
+                e('input', {
+                    className: 'form-input',
+                    type: 'text',
+                    placeholder: '연락처',
+                    value: contactInfo,
+                    onChange: ev => setContactInfo(ev.target.value),
+                }),
+                e('textarea', {
+                    className: 'form-input form-textarea',
+                    placeholder: '비고',
+                    value: notes,
+                    onChange: ev => setNotes(ev.target.value),
+                    rows: 3,
+                })
+            ),
+            e('div', { className: 'popup-actions' },
+                e('button', { className: 'btn-cancel', onClick: onClose }, '취소'),
+                e('button', {
+                    className: 'btn-save',
+                    onClick: handleSave,
+                    disabled: saving,
+                }, saving ? '추가 중...' : '추가')
+            )
+        )
+    );
+}
+
+// ────────────────────────────────────────────────────────────────────
+// EditSpecialPopup - 특수예약 수정 모달
+// ────────────────────────────────────────────────────────────────────
+function EditSpecialPopup({ special, onClose, onSaved }) {
+    const [reservationDate, setReservationDate] = React.useState(special.reservationDate || '');
+    const [reservationTime, setReservationTime] = React.useState(special.reservationTime || '');
+    const [customerName, setCustomerName] = React.useState(special.customerName || '');
+    const [peopleCount, setPeopleCount] = React.useState(special.peopleCount != null ? String(special.peopleCount) : '');
+    const [contactInfo, setContactInfo] = React.useState(special.contactInfo || '');
+    const [notes, setNotes] = React.useState(special.notes || '');
+    const [error, setError] = React.useState('');
+    const [saving, setSaving] = React.useState(false);
+
+    async function handleSave() {
+        if (!reservationDate.trim()) {
+            setError('예약 날짜를 입력해주세요.');
+            return;
+        }
+        if (!customerName.trim()) {
+            setError('예약자명을 입력해주세요.');
+            return;
+        }
+        setSaving(true);
+        setError('');
+        try {
+            await apiFetch(`/api/admin/special/${special.id}`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    reservationDate: reservationDate.trim(),
+                    reservationTime: reservationTime.trim(),
+                    customerName: customerName.trim(),
+                    peopleCount: peopleCount ? parseInt(peopleCount, 10) : null,
+                    contactInfo: contactInfo.trim(),
+                    notes: notes.trim(),
+                }),
+            });
+            onSaved();
+        } catch (err) {
+            setError(err.message || '수정 중 오류가 발생했습니다.');
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    return e('div', { className: 'popup-overlay', onClick: onClose },
+        e('div', { className: 'popup-box', onClick: ev => ev.stopPropagation() },
+            e('div', { className: 'popup-title' }, '특수예약 수정'),
+            error && e('div', { className: 'msg msg-error' }, error),
+            e('div', { className: 'form-row' },
+                e('input', {
+                    className: 'form-input',
+                    type: 'date',
+                    placeholder: '예약 날짜',
+                    value: reservationDate,
+                    onChange: ev => setReservationDate(ev.target.value),
+                }),
+                e('input', {
+                    className: 'form-input',
+                    type: 'time',
+                    placeholder: '예약 시간',
+                    value: reservationTime,
+                    onChange: ev => setReservationTime(ev.target.value),
+                }),
+                e('input', {
+                    className: 'form-input',
+                    type: 'text',
+                    placeholder: '예약자명',
+                    value: customerName,
+                    onChange: ev => setCustomerName(ev.target.value),
+                }),
+                e('input', {
+                    className: 'form-input',
+                    type: 'number',
+                    placeholder: '인원수',
+                    value: peopleCount,
+                    onChange: ev => setPeopleCount(ev.target.value),
+                }),
+                e('input', {
+                    className: 'form-input',
+                    type: 'text',
+                    placeholder: '연락처',
+                    value: contactInfo,
+                    onChange: ev => setContactInfo(ev.target.value),
+                }),
+                e('textarea', {
+                    className: 'form-input form-textarea',
+                    placeholder: '비고',
+                    value: notes,
+                    onChange: ev => setNotes(ev.target.value),
+                    rows: 3,
+                })
+            ),
+            e('div', { className: 'popup-actions' },
+                e('button', { className: 'btn-cancel', onClick: onClose }, '취소'),
+                e('button', {
+                    className: 'btn-save',
+                    onClick: handleSave,
+                    disabled: saving,
+                }, saving ? '저장 중...' : '저장')
+            )
+        )
+    );
+}
+
+// ────────────────────────────────────────────────────────────────────
+// SpecialCard - 특수예약 카드 1개
+// ────────────────────────────────────────────────────────────────────
+function SpecialCard({ special, onEdit, onDelete }) {
+    // 날짜 포맷: YYYY-MM-DD → MM/DD(요일)
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr + 'T00:00:00');
+        const days = ['일', '월', '화', '수', '목', '금', '토'];
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return mm + '/' + dd + '(' + days[d.getDay()] + ')';
+    }
+
+    return e('div', { className: 'special-card' },
+        e('div', { className: 'special-card-top' },
+            e('span', { className: 'special-date' }, formatDate(special.reservationDate)),
+            special.reservationTime && e('span', { className: 'special-time' }, special.reservationTime),
+            e('span', { className: 'special-name' }, special.customerName),
+            special.peopleCount != null && e('span', { className: 'special-count' }, special.peopleCount + '명')
+        ),
+        special.notes && e('div', { className: 'special-card-notes' }, special.notes),
+        e('div', { className: 'special-card-actions' },
+            e('button', { className: 'btn-sm btn-edit', onClick: () => onEdit(special) }, '수정'),
+            e('button', { className: 'btn-sm btn-del', onClick: () => onDelete(special) }, '삭제')
+        )
+    );
+}
+
+// ────────────────────────────────────────────────────────────────────
+// SpecialReservationTab - 특수예약관리 탭
+// ────────────────────────────────────────────────────────────────────
+function SpecialReservationTab() {
+    const [specials, setSpecials] = React.useState([]);
+    const [loading, setLoading] = React.useState(true);
+    const [showAddPopup, setShowAddPopup] = React.useState(false);
+    const [editTarget, setEditTarget] = React.useState(null);
+
+    function loadSpecials() {
+        setLoading(true);
+        apiFetch('/api/admin/special')
+            .then(data => {
+                if (data) setSpecials(data);
+            })
+            .catch(err => console.error('특수예약 목록 로드 실패:', err))
+            .finally(() => setLoading(false));
+    }
+
+    React.useEffect(() => {
+        loadSpecials();
+    }, []);
+
+    function handleDelete(special) {
+        if (!confirm(`'${special.customerName}' 예약을 삭제하시겠습니까?`)) return;
+        apiFetch(`/api/admin/special/${special.id}`, { method: 'DELETE' })
+            .then(() => loadSpecials())
+            .catch(err => alert(err.message || '삭제 실패'));
+    }
+
+    function handleAddSaved() {
+        setShowAddPopup(false);
+        loadSpecials();
+    }
+
+    function handleEditSaved() {
+        setEditTarget(null);
+        loadSpecials();
+    }
+
+    return e('div', { className: 'admin-content' },
+
+        // ① 특수예약 추가 버튼
+        e('button', {
+            className: 'btn-add-special',
+            onClick: () => setShowAddPopup(true),
+        }, '+ 특수예약 추가'),
+
+        // ② 목록 헤더
+        e('div', { className: 'list-header' },
+            e('div', { className: 'section-title' }, '특수예약 목록')
+        ),
+
+        // ③ 특수예약 카드 목록
+        loading
+            ? e('div', { className: 'loading-text' }, '불러오는 중...')
+            : specials.length === 0
+                ? e('div', { className: 'loading-text' }, '등록된 특수예약이 없습니다.')
+                : e('div', { className: 'special-list' },
+                    ...specials.map(s =>
+                        e(SpecialCard, {
+                            key: s.id,
+                            special: s,
+                            onEdit: sp => setEditTarget(sp),
+                            onDelete: handleDelete,
+                        })
+                    )
+                ),
+
+        // 추가 팝업
+        showAddPopup && e(AddSpecialPopup, {
+            onClose: () => setShowAddPopup(false),
+            onSaved: handleAddSaved,
+        }),
+
+        // 수정 팝업
+        editTarget && e(EditSpecialPopup, {
+            special: editTarget,
+            onClose: () => setEditTarget(null),
+            onSaved: handleEditSaved,
+        })
+    );
+}
+
+// ────────────────────────────────────────────────────────────────────
 // AdminPage - 최상위 컴포넌트
 // ────────────────────────────────────────────────────────────────────
 function AdminPage() {
@@ -493,6 +819,8 @@ function AdminPage() {
                 return e(UserManagementTab, {
                     currentUserid: userInfo ? userInfo.userid : '',
                 });
+            case 'special':
+                return e(SpecialReservationTab, null);
             default:
                 return null;
         }
