@@ -656,7 +656,6 @@ function CalendarPage() {
     const [roleOptions, setRoleOptions] = React.useState([]);
 
     const [popupDate, setPopupDate] = React.useState(null);
-    const [popupAttendees, setPopupAttendees] = React.useState([]);
 
     const [loading, setLoading] = React.useState(false);
     const [saving, setSaving] = React.useState(false);
@@ -785,14 +784,11 @@ function CalendarPage() {
 
     function handleCellClick(dateStr) {
         if (!isAdmin) return;
-        const attendees = monthData.filter(d => d.date === dateStr);
         setPopupDate(dateStr);
-        setPopupAttendees(attendees);
     }
 
     function closePopup() {
         setPopupDate(null);
-        setPopupAttendees([]);
     }
 
     function handlePopupSaved() {
@@ -880,7 +876,7 @@ function CalendarPage() {
 
         popupDate && e(AdminPopup, {
             date: popupDate,
-            attendees: popupAttendees,
+            attendees: monthData.filter(d => d.date === popupDate),
             roleOptions,
             onClose: closePopup,
             onSaved: handlePopupSaved
