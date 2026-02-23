@@ -2,12 +2,14 @@ package com.showflix.api.schedule.interfaces;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.showflix.api.auth.infrastructure.security.CustomUserDetails;
+import com.showflix.api.schedule.application.AdminNoteService;
 import com.showflix.api.schedule.application.ScheduleTimeSlotService;
 import com.showflix.api.schedule.application.SelectedDateService;
 import com.showflix.api.schedule.application.command.ConfirmScheduleCommand;
 import com.showflix.api.schedule.application.command.MonthQueryCommand;
 import com.showflix.api.schedule.application.command.SaveSelectedDatesCommand;
 import com.showflix.api.schedule.application.command.SaveTimeSlotCommand;
+import com.showflix.api.schedule.domain.AdminNote;
 import com.showflix.api.schedule.domain.ScheduleRole;
 import com.showflix.api.schedule.interfaces.assembler.ScheduleDateAssembler;
 import com.showflix.api.schedule.interfaces.dto.MonthDataResponse;
@@ -32,11 +34,14 @@ public class ScheduleDateController {
 
     private final SelectedDateService selectedDateService;
     private final ScheduleTimeSlotService timeSlotService;
+    private final AdminNoteService adminNoteService;
 
     public ScheduleDateController(SelectedDateService selectedDateService,
-                                  ScheduleTimeSlotService timeSlotService) {
+                                  ScheduleTimeSlotService timeSlotService,
+                                  AdminNoteService adminNoteService) {
         this.selectedDateService = selectedDateService;
         this.timeSlotService = timeSlotService;
+        this.adminNoteService = adminNoteService;
     }
 
     /**
@@ -179,6 +184,40 @@ public class ScheduleDateController {
                 .map(r -> new RoleOptionResponse(r.name(), r.getDisplayName()))
                 .toList();
         return ResponseEntity.ok(roles);
+    }
+
+    // =========================================================
+    // 공지사항 API
+    // =========================================================
+
+    /**
+     * 공지사항 조회
+     * GET /api/schedule/dates/admin-note
+     */
+    @GetMapping("/admin-note")
+    public ResponseEntity<AdminNote> getAdminNote() {
+        AdminNote note = adminNoteService.getAdminNote();
+        if (note == null) {
+            return ResponseEntity.ok(new AdminNote("GLOBAL", "", "", ""));
+        }
+        return ResponseEntity.ok(note);
+    }
+
+    /**
+     * 공지사항 저장 (관리자 전용)
+     * POST /api/schedule/dates/admin-note
+     * 요청 본문: { "content": "공지사항 내용" }
+     */
+    @PostMapping("/admin-note")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> saveAdminNote(@RequestBody Map<String, String> body) {
+        String content = body.getOrDefault("content", "");
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof CustomUserDetails cud)) {
+            return ResponseEntity.status(401).build();
+        }
+        adminNoteService.saveAdminNote(content, cud.getUser().getUserid());
+        return ResponseEntity.ok().build();
     }
 
     // =========================================================

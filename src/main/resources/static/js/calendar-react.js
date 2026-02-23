@@ -390,6 +390,114 @@ function CalendarCell({ year, month, day, isToday, isSelected, cellData, isAdmin
 }
 
 // ────────────────────────────────────────────────────────────────────
+// 공지사항 섹션
+// ────────────────────────────────────────────────────────────────────
+function AdminNoteSection({ isAdmin }) {
+    const [content, setContent] = React.useState('');
+    const [originalContent, setOriginalContent] = React.useState('');
+    const [updatedBy, setUpdatedBy] = React.useState('');
+    const [updatedAt, setUpdatedAt] = React.useState('');
+    const [editing, setEditing] = React.useState(false);
+    const [saving, setSaving] = React.useState(false);
+    const [msg, setMsg] = React.useState('');
+
+    React.useEffect(() => {
+        loadNote();
+    }, []);
+
+    function loadNote() {
+        fetch('/api/schedule/dates/admin-note', { credentials: 'same-origin' })
+            .then(r => r.ok ? r.json() : { content: '', updatedBy: '', updatedAt: '' })
+            .then(data => {
+                setContent(data.content || '');
+                setOriginalContent(data.content || '');
+                setUpdatedBy(data.updatedBy || '');
+                setUpdatedAt(data.updatedAt || '');
+            })
+            .catch(() => {});
+    }
+
+    function handleEdit() {
+        setEditing(true);
+        setMsg('');
+    }
+
+    function handleCancel() {
+        setContent(originalContent);
+        setEditing(false);
+        setMsg('');
+    }
+
+    async function handleSave() {
+        setSaving(true);
+        setMsg('');
+        try {
+            const r = await fetch('/api/schedule/dates/admin-note', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ content })
+            });
+            if (!r.ok) throw new Error('저장 실패');
+            setMsg('공지사항 저장 완료!');
+            setOriginalContent(content);
+            setEditing(false);
+            loadNote();
+        } catch (err) {
+            setMsg(err.message || '오류 발생');
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    // 내용이 없고 관리자도 아니면 표시 안 함
+    if (!content && !isAdmin) return null;
+
+    return e('div', { className: 'admin-note-section' },
+        e('div', { className: 'admin-note-header' },
+            e('h3', { className: 'admin-note-title' }, '📢 공지사항'),
+            updatedAt && e('span', { className: 'admin-note-meta' },
+                updatedBy ? `${updatedBy} · ${updatedAt}` : updatedAt
+            )
+        ),
+        editing
+            ? e('div', { className: 'admin-note-edit' },
+                e('textarea', {
+                    className: 'admin-note-textarea',
+                    value: content,
+                    onChange: ev => setContent(ev.target.value),
+                    placeholder: '공지사항을 입력하세요.',
+                    rows: 6
+                }),
+                e('div', { className: 'admin-note-actions' },
+                    msg && e('span', { className: msg.includes('완료') ? 'admin-note-msg success' : 'admin-note-msg error' }, msg),
+                    e('button', {
+                        className: 'popup-btn popup-btn-danger',
+                        onClick: handleCancel
+                    }, '취소'),
+                    e('button', {
+                        className: 'popup-btn popup-btn-primary',
+                        onClick: handleSave,
+                        disabled: saving
+                    }, saving ? '저장 중...' : '저장')
+                )
+            )
+            : e('div', { className: 'admin-note-view' },
+                content
+                    ? e('pre', { className: 'admin-note-content' }, content)
+                    : e('p', { className: 'admin-note-empty' }, '등록된 공지사항이 없습니다.'),
+                isAdmin && e('div', { className: 'admin-note-actions' },
+                    msg && e('span', { className: msg.includes('완료') ? 'admin-note-msg success' : 'admin-note-msg error' }, msg),
+                    e('button', {
+                        className: 'popup-btn popup-btn-secondary',
+                        onClick: handleEdit
+                    }, '✏️ 수정')
+                )
+            )
+    );
+}
+
+// ────────────────────────────────────────────────────────────────────
 // 월별 출근자 목록 (하단)
 // ────────────────────────────────────────────────────────────────────
 function AttendeeSection({ monthData }) {
@@ -660,6 +768,8 @@ function CalendarPage() {
                 disabled: saving
             }, saving ? '저장 중...' : '저장하기')
         ),
+
+        e(AdminNoteSection, { isAdmin }),
 
         popupDate && e(AdminPopup, {
             date: popupDate,

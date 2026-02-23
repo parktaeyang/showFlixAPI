@@ -601,6 +601,99 @@ html, body {
   background: rgba(139, 92, 246, 0.12);
 }
 
+/* ── 공지사항 섹션 ─────────────────────────── */
+.admin-note-section {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 12px;
+  border-left: 4px solid #f59e0b;
+}
+
+.admin-note-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.admin-note-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #b45309;
+}
+
+.admin-note-meta {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.admin-note-content {
+  font-family: inherit;
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+  padding: 10px 12px;
+  background: rgba(245, 158, 11, 0.06);
+  border-radius: 8px;
+}
+
+.admin-note-empty {
+  text-align: center;
+  color: #9ca3af;
+  font-size: 13px;
+  padding: 12px 0;
+}
+
+.admin-note-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-note-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #e8e4ff;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  line-height: 1.6;
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.15s;
+}
+
+.admin-note-textarea:focus {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15);
+}
+
+.admin-note-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.admin-note-msg {
+  font-size: 12px;
+  font-weight: 600;
+  margin-right: auto;
+}
+.admin-note-msg.success { color: #10b981; }
+.admin-note-msg.error { color: #ef4444; }
+
+.admin-note-view {
+  display: flex;
+  flex-direction: column;
+}
+
 /* ── 하단 출근자 목록 섹션 ─────────────────── */
 .attendee-section {
   background: rgba(255, 255, 255, 0.95);
