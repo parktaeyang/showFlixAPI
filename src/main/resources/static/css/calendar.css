@@ -432,6 +432,77 @@ html, body {
   margin-bottom: 10px;
 }
 
+.section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.section-title-row .section-title {
+  margin-bottom: 0;
+}
+
+/* 사용자추가 버튼 */
+.popup-btn-add {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1.5px solid rgba(16, 185, 129, 0.3);
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 16px;
+}
+.popup-btn-add:hover { background: rgba(16, 185, 129, 0.2); }
+
+/* 사용자추가 바 */
+.add-user-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  background: rgba(16, 185, 129, 0.06);
+  border-radius: 8px;
+  border: 1px dashed rgba(16, 185, 129, 0.3);
+}
+
+.add-user-select {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1.5px solid #e8e4ff;
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+  background: white;
+  cursor: pointer;
+  min-width: 120px;
+}
+.add-user-select:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
+}
+
+.add-user-confirm-btn {
+  font-size: 12px !important;
+  padding: 5px 14px !important;
+}
+
+.add-user-cancel-btn {
+  font-size: 12px !important;
+  padding: 5px 10px !important;
+}
+
+/* 삭제 가능한 이름 셀 */
+.attendee-name.deletable {
+  cursor: pointer;
+  color: #dc2626;
+  transition: background 0.15s;
+}
+.attendee-name.deletable:hover {
+  background: rgba(220, 38, 38, 0.08);
+  text-decoration: line-through;
+}
+
 .section-divider {
   border: none;
   border-top: 1px solid #f0ebff;

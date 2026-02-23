@@ -87,12 +87,17 @@ function AdminPopup({ date, attendees, roleOptions, onClose, onSaved }) {
 
     const [slots, setSlots] = React.useState([]);
     const [slotLoading, setSlotLoading] = React.useState(true);
-    // slotChecks: { [timeSlot]: { [userId]: boolean } }
     const [slotChecks, setSlotChecks] = React.useState({});
 
     const [saving, setSaving] = React.useState(false);
     const [confirming, setConfirming] = React.useState(false);
     const [msg, setMsg] = React.useState('');
+
+    // 사용자 추가 관련 state
+    const [allUsers, setAllUsers] = React.useState(null);
+    const [showAddUser, setShowAddUser] = React.useState(false);
+    const [selectedNewUserId, setSelectedNewUserId] = React.useState('');
+    const [addingUser, setAddingUser] = React.useState(false);
 
     // 시간표 로드
     React.useEffect(() => {
@@ -137,6 +142,69 @@ function AdminPopup({ date, attendees, roleOptions, onClose, onSaved }) {
             ...prev,
             [timeSlot]: { ...(prev[timeSlot] || {}), [userId]: checked }
         }));
+    }
+
+    // ── 사용자 추가 ──
+    async function handleShowAddUser() {
+        setMsg('');
+        if (!allUsers) {
+            try {
+                const r = await fetch('/api/schedule/dates/users', { credentials: 'same-origin' });
+                if (r.ok) setAllUsers(await r.json());
+                else setAllUsers([]);
+            } catch { setAllUsers([]); }
+        }
+        setShowAddUser(true);
+        setSelectedNewUserId('');
+    }
+
+    async function handleAddUser() {
+        if (!selectedNewUserId || !allUsers) return;
+        const user = allUsers.find(u => u.userId === selectedNewUserId);
+        if (!user) return;
+
+        // 이미 등록된 사용자 체크
+        if (attendees.some(a => a.userId === user.userId)) {
+            setMsg('이미 등록된 사용자입니다.');
+            return;
+        }
+
+        setAddingUser(true);
+        setMsg('');
+        try {
+            const r = await fetch('/api/schedule/dates/add-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ date, userId: user.userId, userName: user.userName, role: '' })
+            });
+            if (!r.ok) throw new Error('추가 실패');
+            setMsg('사용자 추가 완료');
+            setShowAddUser(false);
+            setSelectedNewUserId('');
+            if (onSaved) onSaved();
+        } catch (err) {
+            setMsg(err.message || '추가 실패');
+        } finally {
+            setAddingUser(false);
+        }
+    }
+
+    // ── 사용자 삭제 ──
+    async function handleDeleteUser(userId, userName) {
+        if (!confirm(`'${userName}' 사용자를 ${date} 일정에서 삭제할까요?`)) return;
+        setMsg('');
+        try {
+            const r = await fetch(`/api/schedule/dates/selection?date=${date}&userId=${userId}`, {
+                method: 'DELETE',
+                credentials: 'same-origin'
+            });
+            if (!r.ok) throw new Error('삭제 실패');
+            setMsg('사용자 삭제 완료');
+            if (onSaved) onSaved();
+        } catch (err) {
+            setMsg(err.message || '삭제 실패');
+        }
     }
 
     async function handleSaveRoles() {
@@ -223,6 +291,11 @@ function AdminPopup({ date, attendees, roleOptions, onClose, onSaved }) {
         if (ev.target === ev.currentTarget) onClose();
     }
 
+    // 드롭다운에서 이미 등록된 사용자 제외
+    const availableUsers = allUsers
+        ? allUsers.filter(u => !attendees.some(a => a.userId === u.userId))
+        : [];
+
     return e('div', { className: 'popup-overlay', onClick: handleOverlayClick },
         e('div', { className: 'popup-box admin-popup' },
 
@@ -236,7 +309,37 @@ function AdminPopup({ date, attendees, roleOptions, onClose, onSaved }) {
 
                 // 출근자 목록
                 e('section', { className: 'admin-section' },
-                    e('h4', { className: 'section-title' }, '출근자 역할 & 비고'),
+                    e('div', { className: 'section-title-row' },
+                        e('h4', { className: 'section-title' }, '출근자 역할 & 비고'),
+                        e('button', {
+                            className: 'popup-btn popup-btn-add',
+                            onClick: handleShowAddUser
+                        }, '+ 사용자추가')
+                    ),
+
+                    // 사용자 추가 UI
+                    showAddUser && e('div', { className: 'add-user-bar' },
+                        e('select', {
+                            className: 'add-user-select',
+                            value: selectedNewUserId,
+                            onChange: ev => setSelectedNewUserId(ev.target.value)
+                        },
+                            e('option', { value: '' }, '-- 사용자 선택 --'),
+                            availableUsers.map(u =>
+                                e('option', { key: u.userId, value: u.userId }, u.userName)
+                            )
+                        ),
+                        e('button', {
+                            className: 'popup-btn popup-btn-primary add-user-confirm-btn',
+                            onClick: handleAddUser,
+                            disabled: !selectedNewUserId || addingUser
+                        }, addingUser ? '추가중...' : '추가'),
+                        e('button', {
+                            className: 'popup-btn popup-btn-danger add-user-cancel-btn',
+                            onClick: () => { setShowAddUser(false); setSelectedNewUserId(''); }
+                        }, '취소')
+                    ),
+
                     attendees.length === 0
                         ? e('p', { className: 'no-data' }, '등록된 출근자가 없습니다.')
                         : e('div', { className: 'attendee-table-wrap' },
@@ -251,7 +354,11 @@ function AdminPopup({ date, attendees, roleOptions, onClose, onSaved }) {
                                 e('tbody', null,
                                     attendees.map(a =>
                                         e('tr', { key: a.userId },
-                                            e('td', { className: 'attendee-name' }, a.userName),
+                                            e('td', {
+                                                className: 'attendee-name deletable',
+                                                title: '클릭하여 삭제',
+                                                onClick: () => handleDeleteUser(a.userId, a.userName)
+                                            }, a.userName),
                                             e('td', null,
                                                 e('select', {
                                                     className: 'role-select',

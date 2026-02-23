@@ -72,11 +72,26 @@ public class SelectedDateService {
     }
 
     /**
-     * 선택 날짜 단건 삭제 (본인 것만)
+     * 선택 날짜 단건 삭제
      */
     @Transactional
-    public void deleteSelectedDate(String date, String userId) {
-        selectedDateRepository.deleteByDateAndUserId(date, userId);
+    public int deleteSelectedDate(String date, String userId) {
+        return selectedDateRepository.deleteByDateAndUserId(date, userId);
+    }
+
+    /**
+     * 관리자가 특정 날짜에 사용자 추가 (upsert)
+     */
+    @Transactional
+    public void addUserToDate(String date, String userId, String userName, String role) {
+        SelectedDate sd = new SelectedDate();
+        sd.setDate(date);
+        sd.setUserId(userId);
+        sd.setUserName(userName != null ? userName : "");
+        sd.setRole(role != null ? role : "");
+        sd.setOpenHope(false);
+        sd.setConfirmed("N");
+        selectedDateRepository.saveAll(List.of(sd));
     }
 
     /**

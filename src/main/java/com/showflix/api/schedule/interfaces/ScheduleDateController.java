@@ -1,6 +1,8 @@
 package com.showflix.api.schedule.interfaces;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.showflix.api.auth.application.AdminUserService;
+import com.showflix.api.auth.domain.User;
 import com.showflix.api.auth.infrastructure.security.CustomUserDetails;
 import com.showflix.api.schedule.application.AdminNoteService;
 import com.showflix.api.schedule.application.ScheduleTimeSlotService;
@@ -35,13 +37,16 @@ public class ScheduleDateController {
     private final SelectedDateService selectedDateService;
     private final ScheduleTimeSlotService timeSlotService;
     private final AdminNoteService adminNoteService;
+    private final AdminUserService adminUserService;
 
     public ScheduleDateController(SelectedDateService selectedDateService,
                                   ScheduleTimeSlotService timeSlotService,
-                                  AdminNoteService adminNoteService) {
+                                  AdminNoteService adminNoteService,
+                                  AdminUserService adminUserService) {
         this.selectedDateService = selectedDateService;
         this.timeSlotService = timeSlotService;
         this.adminNoteService = adminNoteService;
+        this.adminUserService = adminUserService;
     }
 
     /**
@@ -187,6 +192,57 @@ public class ScheduleDateController {
     }
 
     // =========================================================
+    // 관리자 전용 - 사용자 추가/삭제 API
+    // =========================================================
+
+    /**
+     * 전체 사용자 목록 조회 (관리자 팝업 - 사용자 추가용)
+     * GET /api/schedule/dates/users
+     */
+    @GetMapping("/users")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<UserListResponse>> listUsers() {
+        List<User> users = adminUserService.getAllUsers();
+        List<UserListResponse> responses = users.stream()
+                .map(u -> new UserListResponse(u.getUserid(), u.getUsername()))
+                .toList();
+        return ResponseEntity.ok(responses);
+    }
+
+    /**
+     * 관리자가 특정 날짜에 사용자 추가
+     * POST /api/schedule/dates/add-user
+     * 요청 본문: { "date": "2025-02-15", "userId": "user1", "userName": "홍길동", "role": "DOOR" }
+     */
+    @PostMapping("/add-user")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> addUserToDate(@RequestBody AddUserPayload payload) {
+        if (payload.date() == null || payload.userId() == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        selectedDateService.addUserToDate(
+                payload.date(), payload.userId(), payload.userName(), payload.role()
+        );
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 관리자가 특정 날짜에서 사용자 삭제
+     * DELETE /api/schedule/dates/selection?date=2025-02-15&userId=user1
+     */
+    @DeleteMapping("/selection")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteUserFromDate(
+            @RequestParam String date,
+            @RequestParam String userId) {
+        int deleted = selectedDateService.deleteSelectedDate(date, userId);
+        if (deleted == 0) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    // =========================================================
     // 공지사항 API
     // =========================================================
 
@@ -216,7 +272,7 @@ public class ScheduleDateController {
         if (auth == null || !(auth.getPrincipal() instanceof CustomUserDetails cud)) {
             return ResponseEntity.status(401).build();
         }
-        adminNoteService.saveAdminNote(content, cud.getUser().getUserid());
+        adminNoteService.saveAdminNote(content, cud.getUser().getUsername());
         return ResponseEntity.ok().build();
     }
 
@@ -240,4 +296,9 @@ public class ScheduleDateController {
     public record RoleUpdatePayload(String date, String userId, String role, String remarks) {}
 
     public record RoleOptionResponse(String value, String label) {}
+
+    public record UserListResponse(String userId, String userName) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record AddUserPayload(String date, String userId, String userName, String role) {}
 }
