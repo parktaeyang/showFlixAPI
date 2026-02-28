@@ -39,10 +39,114 @@ const DEFAULT_TIME_SLOTS = [
 ];
 
 // ────────────────────────────────────────────────────────────────────
+// 비밀번호 변경 모달
+// ────────────────────────────────────────────────────────────────────
+function ChangePasswordModal({ onClose }) {
+    const [currentPw, setCurrentPw] = React.useState('');
+    const [newPw, setNewPw] = React.useState('');
+    const [confirmPw, setConfirmPw] = React.useState('');
+    const [error, setError] = React.useState('');
+    const [success, setSuccess] = React.useState(false);
+    const [loading, setLoading] = React.useState(false);
+
+    async function handleSubmit() {
+        setError('');
+        if (!currentPw) { setError('현재 비밀번호를 입력해주세요.'); return; }
+        if (!newPw) { setError('새 비밀번호를 입력해주세요.'); return; }
+        if (newPw.length < 4) { setError('새 비밀번호는 4자 이상이어야 합니다.'); return; }
+        if (newPw !== confirmPw) { setError('새 비밀번호가 일치하지 않습니다.'); return; }
+
+        setLoading(true);
+        try {
+            const r = await fetch('/api/user/password', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ currentPassword: currentPw, newPassword: newPw })
+            });
+            const data = await r.json().catch(() => null);
+            if (!r.ok) {
+                setError((data && data.message) || '비밀번호 변경에 실패했습니다.');
+                return;
+            }
+            setSuccess(true);
+            setTimeout(() => onClose(), 1500);
+        } catch (err) {
+            setError('네트워크 오류가 발생했습니다.');
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    function handleOverlayClick(ev) {
+        if (ev.target === ev.currentTarget) onClose();
+    }
+
+    return e('div', { className: 'popup-overlay', onClick: handleOverlayClick },
+        e('div', { className: 'popup-box', style: { maxWidth: '340px' } },
+            e('div', { className: 'popup-header' },
+                e('h3', { className: 'popup-title' }, '🔒 비밀번호 변경'),
+                e('button', { className: 'popup-close', onClick: onClose }, '✕')
+            ),
+            e('div', { className: 'popup-body' },
+                success
+                    ? e('div', { style: { textAlign: 'center', padding: '24px 0', color: '#10b981', fontSize: '15px', fontWeight: '600' } },
+                        '✓ 비밀번호가 변경되었습니다.'
+                    )
+                    : e('div', { className: 'pw-change-form' },
+                        e('div', { className: 'pw-field' },
+                            e('label', { className: 'pw-label' }, '현재 비밀번호'),
+                            e('input', {
+                                type: 'password',
+                                className: 'pw-input',
+                                value: currentPw,
+                                onChange: ev => setCurrentPw(ev.target.value),
+                                placeholder: '현재 비밀번호',
+                                autoFocus: true
+                            })
+                        ),
+                        e('div', { className: 'pw-field' },
+                            e('label', { className: 'pw-label' }, '새 비밀번호'),
+                            e('input', {
+                                type: 'password',
+                                className: 'pw-input',
+                                value: newPw,
+                                onChange: ev => setNewPw(ev.target.value),
+                                placeholder: '새 비밀번호 (4자 이상)'
+                            })
+                        ),
+                        e('div', { className: 'pw-field' },
+                            e('label', { className: 'pw-label' }, '새 비밀번호 확인'),
+                            e('input', {
+                                type: 'password',
+                                className: 'pw-input',
+                                value: confirmPw,
+                                onChange: ev => setConfirmPw(ev.target.value),
+                                placeholder: '새 비밀번호 확인',
+                                onKeyDown: ev => { if (ev.key === 'Enter') handleSubmit(); }
+                            })
+                        ),
+                        error && e('p', { className: 'pw-error' }, error)
+                    )
+            ),
+            !success && e('div', { className: 'popup-footer' },
+                e('button', { className: 'popup-btn popup-btn-danger', onClick: onClose }, '취소'),
+                e('button', {
+                    className: 'popup-btn popup-btn-primary',
+                    onClick: handleSubmit,
+                    disabled: loading
+                }, loading ? '변경 중...' : '변경하기')
+            )
+        )
+    );
+}
+
+// ────────────────────────────────────────────────────────────────────
 // 사용자 드롭다운
 // ────────────────────────────────────────────────────────────────────
 function UserDropdown({ userName, isAdmin }) {
     const [open, setOpen] = React.useState(false);
+    const [showPwModal, setShowPwModal] = React.useState(false);
 
     function handleLogout() {
         fetch('/logout', { method: 'POST', credentials: 'same-origin' })
@@ -53,6 +157,11 @@ function UserDropdown({ userName, isAdmin }) {
         window.location.href = '/admin/';
     }
 
+    function handlePasswordChange() {
+        setOpen(false);
+        setShowPwModal(true);
+    }
+
     return e('div', { className: 'user-dropdown', style: { position: 'relative' } },
         e('button', {
             className: 'user-btn',
@@ -61,8 +170,10 @@ function UserDropdown({ userName, isAdmin }) {
         open && e('div', { className: 'dropdown-menu' },
             isAdmin &&
             e('button', { className: 'dropdown-item', onClick: handleAdminPage }, '관리자페이지'),
+            e('button', { className: 'dropdown-item', onClick: handlePasswordChange }, '비밀번호 변경'),
             e('button', { className: 'dropdown-item', onClick: handleLogout }, '로그아웃')
-        )
+        ),
+        showPwModal && e(ChangePasswordModal, { onClose: () => setShowPwModal(false) })
     );
 }
 
