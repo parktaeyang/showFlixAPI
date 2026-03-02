@@ -96,6 +96,9 @@ function LoginPage() {
 
   return (
     React.createElement('div', { className: 'login-container' },
+      React.createElement('div', { className: 'login-logo' },
+        React.createElement('img', { src: '/images/showflix-logo.png', alt: 'SHOWFLIX' })
+      ),
       React.createElement('h1', null, '로그인'),
       React.createElement('form', { id: 'login-form', onSubmit: handleSubmit },
         React.createElement('div', { className: 'form-group' },
@@ -123,7 +126,7 @@ function LoginPage() {
             onChange: (e) => setPassword(e.target.value),
           }),
         ),
-        React.createElement('p', { id: 'error-msg', className: 'error-msg' }, error),
+        error ? React.createElement('p', { id: 'error-msg', className: 'error-msg' }, error) : null,
         React.createElement('div', { className: 'form-group save-id-wrap' },
           React.createElement('label', { className: 'save-id-label' },
             React.createElement('input', {

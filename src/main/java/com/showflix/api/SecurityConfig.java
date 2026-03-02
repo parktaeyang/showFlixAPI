@@ -34,7 +34,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         // 공개 경로 (index.html은 로그인 페이지로 공개)
-                        .requestMatchers("/", "/index.html", "/login", "/css/**", "/js/**").permitAll()
+                        .requestMatchers("/", "/index.html", "/login", "/css/**", "/js/**", "/images/**").permitAll()
                         .requestMatchers("/auth/login").permitAll()
                         // .html 직접 접근 차단 (index.html 제외 - 위에서 permitAll로 먼저 매칭됨)
                         .requestMatchers("/**/*.html").denyAll()
