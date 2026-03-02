@@ -1,0 +1,554 @@
+/* ==========================================
+   admin.css - 관리자 페이지 스타일
+   모바일 특화 (max-width: 520px)
+   ========================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    background: linear-gradient(135deg, #f8f5ff 0%, #f0f0ff 100%);
+    min-height: 100vh;
+    color: #2d2d3a;
+}
+
+/* ==========================================
+   레이아웃
+   ========================================== */
+.admin-wrap {
+    max-width: 520px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ==========================================
+   상단 헤더
+   ========================================== */
+.admin-header {
+    background: linear-gradient(135deg, #6b46c1 0%, #8b5cf6 100%);
+    color: #fff;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(107, 70, 193, 0.3);
+}
+
+.admin-logo {
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.admin-logo span {
+    opacity: 0.8;
+    font-size: 0.85rem;
+    margin-left: 6px;
+}
+
+.admin-back-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.admin-back-btn:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+/* ==========================================
+   탭 바
+   ========================================== */
+.admin-tab-bar {
+    background: #fff;
+    display: flex;
+    border-bottom: 2px solid #e8e4ff;
+    position: sticky;
+    top: 54px;
+    z-index: 99;
+}
+
+.admin-tab {
+    flex: 1;
+    padding: 13px 8px;
+    text-align: center;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #9ca3af;
+    cursor: pointer;
+    border: none;
+    background: none;
+    border-bottom: 3px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+    margin-bottom: -2px;
+}
+
+.admin-tab.active {
+    color: #6b46c1;
+    border-bottom-color: #6b46c1;
+}
+
+/* ==========================================
+   탭 컨텐츠 영역
+   ========================================== */
+.admin-content {
+    flex: 1;
+    padding: 16px;
+}
+
+.section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #4c1d95;
+    margin-bottom: 14px;
+}
+
+/* ==========================================
+   계정 목록 헤더 (제목 + 역할 필터)
+   ========================================== */
+.list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 20px;
+    margin-bottom: 12px;
+}
+
+.list-header .section-title {
+    margin-bottom: 0;
+}
+
+.role-filter-select {
+    padding: 6px 10px;
+    border: 1.5px solid #e8e4ff;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    color: #4b5563;
+    background: #faf9ff;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.role-filter-select:focus {
+    border-color: #8b5cf6;
+}
+
+/* ==========================================
+   사용자 카드 목록
+   ========================================== */
+.user-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.user-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 14px 16px;
+    box-shadow: 0 2px 8px rgba(107, 70, 193, 0.08);
+    border: 1px solid #f0eeff;
+}
+
+.user-card-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.user-card-badges {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.user-card-id {
+    font-size: 0.78rem;
+    color: #9ca3af;
+    background: #f5f3ff;
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-family: monospace;
+}
+
+.user-card-name {
+    font-size: 0.97rem;
+    font-weight: 600;
+    color: #2d2d3a;
+    flex: 1;
+}
+
+.badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    border-radius: 20px;
+    padding: 2px 10px;
+    white-space: nowrap;
+}
+
+.badge-admin {
+    background: #ede9fe;
+    color: #6b46c1;
+}
+
+.badge-user {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.badge-role {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.user-card-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.btn-sm {
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.btn-sm:active {
+    transform: scale(0.96);
+}
+
+.btn-edit {
+    background: #ede9fe;
+    color: #6b46c1;
+}
+
+.btn-edit:hover {
+    background: #ddd6fe;
+}
+
+.btn-pw {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.btn-pw:hover {
+    background: #bae6fd;
+}
+
+.btn-del {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.btn-del:hover {
+    background: #fecaca;
+}
+
+/* ==========================================
+   신규 추가 인라인 폼
+   ========================================== */
+.add-form-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(107, 70, 193, 0.08);
+    border: 2px dashed #c4b5fd;
+}
+
+.add-form-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #6b46c1;
+    margin-bottom: 12px;
+}
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #e8e4ff;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    color: #2d2d3a;
+    background: #faf9ff;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-input:focus {
+    border-color: #8b5cf6;
+    background: #fff;
+}
+
+.form-check-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.form-check-row label {
+    font-size: 0.88rem;
+    color: #4b5563;
+    cursor: pointer;
+}
+
+.form-check-row input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #6b46c1;
+    cursor: pointer;
+}
+
+.btn-add {
+    width: 100%;
+    padding: 11px;
+    background: linear-gradient(135deg, #6b46c1, #8b5cf6);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+}
+
+.btn-add:hover {
+    opacity: 0.9;
+}
+
+.btn-add:active {
+    transform: scale(0.98);
+}
+
+/* ==========================================
+   팝업 (수정 / 비밀번호 변경)
+   ========================================== */
+.popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 20px;
+}
+
+.popup-box {
+    background: #fff;
+    border-radius: 18px;
+    padding: 24px 20px 20px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 8px 32px rgba(107, 70, 193, 0.2);
+}
+
+.popup-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #4c1d95;
+    margin-bottom: 16px;
+}
+
+.popup-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.btn-cancel {
+    flex: 1;
+    padding: 11px;
+    background: #f3f4f6;
+    color: #4b5563;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-save {
+    flex: 2;
+    padding: 11px;
+    background: linear-gradient(135deg, #6b46c1, #8b5cf6);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-save:hover {
+    opacity: 0.9;
+}
+
+/* ==========================================
+   메시지 (에러/성공)
+   ========================================== */
+.msg {
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 0.84rem;
+    margin-bottom: 12px;
+}
+
+.msg-error {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.msg-success {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+/* ==========================================
+   로딩
+   ========================================== */
+.loading-text {
+    text-align: center;
+    color: #9ca3af;
+    padding: 40px 0;
+    font-size: 0.9rem;
+}
+
+/* ==========================================
+   특수예약 - 추가 버튼
+   ========================================== */
+.btn-add-special {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, #6b46c1, #8b5cf6);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-bottom: 4px;
+}
+
+.btn-add-special:hover {
+    opacity: 0.9;
+}
+
+.btn-add-special:active {
+    transform: scale(0.98);
+}
+
+/* ==========================================
+   특수예약 - 카드 목록
+   ========================================== */
+.special-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.special-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 14px 16px;
+    box-shadow: 0 2px 8px rgba(107, 70, 193, 0.08);
+    border: 1px solid #f0eeff;
+}
+
+.special-card-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.special-date {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #6b46c1;
+    background: #f5f3ff;
+    border-radius: 6px;
+    padding: 2px 8px;
+}
+
+.special-time {
+    font-size: 0.82rem;
+    color: #6b7280;
+}
+
+.special-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #2d2d3a;
+}
+
+.special-count {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #0369a1;
+    background: #e0f2fe;
+    border-radius: 20px;
+    padding: 2px 10px;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.special-card-notes {
+    font-size: 0.82rem;
+    color: #6b7280;
+    background: #faf9ff;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.special-card-actions {
+    display: flex;
+    gap: 6px;
+}
+
+/* ==========================================
+   특수예약 - 모달 textarea
+   ========================================== */
+.form-textarea {
+    resize: vertical;
+    min-height: 60px;
+    font-family: inherit;
+    line-height: 1.5;
+}

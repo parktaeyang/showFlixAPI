@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.showflix.api.schedule.mapper.ScheduleSpecialMapper">
+
+    <!-- 전체 목록 조회 (최신 예약일 순) -->
+    <select id="findAll"
+            resultType="com.showflix.api.schedule.domain.ScheduleSpecial">
+        SELECT
+            id,
+            reservation_date AS reservationDate,
+            reservation_time AS reservationTime,
+            customer_name    AS customerName,
+            people_count     AS peopleCount,
+            contact_info     AS contactInfo,
+            notes
+        FROM schedule_special
+        ORDER BY reservation_date DESC, reservation_time ASC
+    </select>
+
+    <!-- 단건 조회 -->
+    <select id="findById"
+            parameterType="long"
+            resultType="com.showflix.api.schedule.domain.ScheduleSpecial">
+        SELECT
+            id,
+            reservation_date AS reservationDate,
+            reservation_time AS reservationTime,
+            customer_name    AS customerName,
+            people_count     AS peopleCount,
+            contact_info     AS contactInfo,
+            notes
+        FROM schedule_special
+        WHERE id = #{id}
+    </select>
+
+    <!-- 신규 삽입 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO schedule_special (reservation_date, reservation_time, customer_name, people_count, contact_info, notes, created_at, updated_at)
+        VALUES (#{reservationDate}, #{reservationTime}, #{customerName}, #{peopleCount}, #{contactInfo}, #{notes}, NOW(), NOW())
+    </insert>
+
+    <!-- 수정 -->
+    <update id="update">
+        UPDATE schedule_special
+        SET reservation_date = #{reservationDate},
+            reservation_time = #{reservationTime},
+            customer_name    = #{customerName},
+            people_count     = #{peopleCount},
+            contact_info     = #{contactInfo},
+            notes            = #{notes},
+            updated_at       = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 삭제 -->
+    <delete id="deleteById">
+        DELETE FROM schedule_special
+        WHERE id = #{id}
+    </delete>
+
+</mapper>
