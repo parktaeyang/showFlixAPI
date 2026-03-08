@@ -544,6 +544,203 @@ body {
 }
 
 /* ==========================================
+   바우처/팁 관리 탭
+   ========================================== */
+
+/* 탭 컨텐츠 패딩 제거 (sticky bar가 직접 처리) */
+.voucher-content {
+    padding: 0;
+}
+
+/* 날짜 + 저장 버튼 고정 바
+   헤더(~54px) + 탭바(~44px) = 98px 아래에 sticky */
+.voucher-sticky-bar {
+    position: sticky;
+    top: 98px;
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(to bottom, #f8f5ff 80%, transparent 100%);
+    padding: 12px 16px 10px;
+    border-bottom: 1px solid #e8e4ff;
+}
+
+.voucher-date-input {
+    flex: 1;
+    font-size: 0.95rem;
+    padding: 9px 12px;
+}
+
+/* 전체 저장 버튼 */
+.btn-save-voucher {
+    flex-shrink: 0;
+    padding: 9px 18px;
+    background: linear-gradient(135deg, #6b46c1 0%, #8b5cf6 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+}
+
+.btn-save-voucher:hover {
+    opacity: 0.9;
+}
+
+.btn-save-voucher:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 목록 영역 패딩 */
+.voucher-content .list-header,
+.voucher-content .loading-text,
+.voucher-content .msg,
+.voucher-content .voucher-table,
+.voucher-content .voucher-summary {
+    margin-left: 16px;
+    margin-right: 16px;
+}
+
+.voucher-content .list-header {
+    margin-top: 14px;
+}
+
+/* 배우 목록 테이블 */
+.voucher-table {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+/* 배우 1행 */
+.voucher-row {
+    background: #fff;
+    border: 1px solid #e8e4ff;
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* 배우 이름 + 역할 */
+.voucher-row-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.voucher-row-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #2d2d3a;
+}
+
+/* 바우처/팁 입력 그룹 */
+.voucher-row-inputs {
+    display: flex;
+    gap: 10px;
+}
+
+.voucher-input-group {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.voucher-input-label {
+    font-size: 0.72rem;
+    color: #9ca3af;
+    font-weight: 600;
+}
+
+/* 입력 + 단위 묶음 */
+.voucher-input-wrap {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    width: 100%;
+    border: 1.5px solid #e8e4ff;
+    border-radius: 8px;
+    background: #fafafa;
+    overflow: hidden;
+}
+
+.voucher-input-wrap:focus-within {
+    border-color: #8b5cf6;
+    background: #fff;
+}
+
+.voucher-input {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 6px 8px 10px;
+    border: none;
+    font-size: 0.9rem;
+    color: #2d2d3a;
+    background: transparent;
+    outline: none;
+    text-align: right;
+    -moz-appearance: textfield;
+}
+
+/* 바우처(number) spin 버튼 제거 */
+.voucher-input[type="number"]::-webkit-inner-spin-button,
+.voucher-input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.voucher-input::placeholder {
+    color: #d1d5db;
+}
+
+/* 단위 표시 (개 / 원) */
+.voucher-input-unit {
+    padding: 8px 10px 8px 4px;
+    font-size: 0.82rem;
+    color: #6b46c1;
+    font-weight: 700;
+    user-select: none;
+}
+
+/* 합계 행 */
+.voucher-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f5f0ff;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 24px;
+    font-size: 0.88rem;
+    color: #6b46c1;
+    font-weight: 700;
+}
+
+.voucher-summary-amounts {
+    display: flex;
+    gap: 16px;
+}
+
+.voucher-summary-amounts span {
+    font-size: 0.85rem;
+    color: #4c1d95;
+}
+
+.voucher-summary-amounts strong {
+    font-size: 0.95rem;
+}
+
+/* ==========================================
    특수예약 - 모달 textarea
    ========================================== */
 .form-textarea {

@@ -1,4 +1,4 @@
-/* login.css - 레거시 스타일 재사용 */
+/* login.css - 쇼플릭스 디자인 통일 */
 
 * {
   margin: 0;
@@ -10,26 +10,54 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f5f5f5;
+  min-height: 100vh;
+  font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  background: linear-gradient(135deg, #f8f5ff 0%, #f0f0ff 100%);
 }
 
 .login-container {
-  background-color: #fff;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background: #fff;
+  padding: 2rem 2rem 1.75rem;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(107, 70, 193, 0.15);
+  border: 1px solid #f0eeff;
   width: 100%;
-  max-width: 450px;
+  max-width: 400px;
 }
 
+/* ==========================================
+   브랜드 로고 이미지
+   ========================================== */
+.login-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.login-logo img {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  border: 3px solid #8b5cf6;
+  box-shadow: 0 4px 16px rgba(107, 70, 193, 0.25);
+  object-fit: cover;
+  display: block;
+}
+
+/* ==========================================
+   제목
+   ========================================== */
 .login-container h1 {
   margin-bottom: 1.5rem;
   text-align: center;
-  color: #333;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #4c1d95;
 }
 
+/* ==========================================
+   폼 그룹
+   ========================================== */
 .form-group {
   margin-bottom: 1rem;
 }
@@ -37,57 +65,85 @@ body {
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-  font-weight: bold;
-  color: #555;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6b46c1;
 }
 
 .form-group input {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 1rem;
+  padding: 10px 12px;
+  border: 1.5px solid #e8e4ff;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  background: #faf9ff;
+  color: #2d2d3a;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .form-group input:focus {
-  border-color: #007bff;
-  outline: none;
+  border-color: #8b5cf6;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.15);
 }
 
+/* ==========================================
+   로그인 버튼
+   ========================================== */
 .login-button {
   width: 100%;
-  padding: 0.75rem;
-  background-color: #007bff;
+  padding: 11px;
+  background: linear-gradient(135deg, #7c3aed 0%, #6b46c1 100%);
   color: #fff;
   border: none;
-  border-radius: 4px;
-  font-size: 1rem;
+  border-radius: 24px;
+  font-size: 0.95rem;
+  font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+  transition: all 0.2s;
 }
 
 .login-button:hover {
-  background-color: #0056b3;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.45);
 }
 
+.login-button:active {
+  transform: scale(0.98);
+}
+
+/* ==========================================
+   도움말 텍스트
+   ========================================== */
 .help-text {
   display: block;
   margin-top: 0.5rem;
   font-size: 0.85rem;
-  color: #6c757d;
+  color: #9ca3af;
   text-align: center;
   font-style: italic;
   line-height: 1.4;
 }
 
+/* ==========================================
+   에러 메시지
+   ========================================== */
 .error-msg {
   display: block;
   margin-bottom: 0.5rem;
   font-size: 0.85rem;
   text-align: center;
-  color: #ff0000;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+  border-radius: 8px;
+  padding: 6px 10px;
 }
 
+/* ==========================================
+   아이디 저장 체크박스
+   ========================================== */
 .save-id-wrap {
   margin-bottom: 1rem;
 }
@@ -105,7 +161,6 @@ body {
 .save-id-label input[type="checkbox"] {
   width: 1rem;
   height: 1rem;
-  accent-color: #007bff;
+  accent-color: #6b46c1;
   cursor: pointer;
 }
-
