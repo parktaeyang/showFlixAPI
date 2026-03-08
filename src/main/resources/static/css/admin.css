@@ -544,6 +544,147 @@ body {
 }
 
 /* ==========================================
+   바우처/팁 관리 탭
+   ========================================== */
+
+/* 날짜 선택 행 */
+.voucher-date-row {
+    margin-bottom: 16px;
+}
+
+.voucher-date-input {
+    width: 100%;
+    font-size: 1rem;
+    padding: 10px 12px;
+}
+
+/* 배우 목록 테이블 */
+.voucher-table {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+/* 배우 1행 */
+.voucher-row {
+    background: #fff;
+    border: 1px solid #e8e4ff;
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* 배우 이름 + 역할 */
+.voucher-row-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.voucher-row-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #2d2d3a;
+}
+
+/* 바우처/팁 입력 그룹 */
+.voucher-row-inputs {
+    display: flex;
+    gap: 10px;
+}
+
+.voucher-input-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.voucher-input-label {
+    font-size: 0.72rem;
+    color: #9ca3af;
+    font-weight: 600;
+}
+
+.voucher-input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1.5px solid #e8e4ff;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #2d2d3a;
+    background: #fafafa;
+    outline: none;
+    text-align: right;
+    -moz-appearance: textfield;
+}
+
+.voucher-input:focus {
+    border-color: #8b5cf6;
+    background: #fff;
+}
+
+.voucher-input::-webkit-inner-spin-button,
+.voucher-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* 합계 행 */
+.voucher-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f5f0ff;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    font-size: 0.88rem;
+    color: #6b46c1;
+    font-weight: 700;
+}
+
+.voucher-summary-amounts {
+    display: flex;
+    gap: 16px;
+}
+
+.voucher-summary-amounts span {
+    font-size: 0.85rem;
+    color: #4c1d95;
+}
+
+.voucher-summary-amounts strong {
+    font-size: 0.95rem;
+}
+
+/* 전체 저장 버튼 */
+.btn-save-voucher {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, #6b46c1 0%, #8b5cf6 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn-save-voucher:hover {
+    opacity: 0.9;
+}
+
+.btn-save-voucher:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ==========================================
    특수예약 - 모달 textarea
    ========================================== */
 .form-textarea {

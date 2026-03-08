@@ -100,8 +100,9 @@ function AdminHeader({ userName }) {
 // TabBar
 // ────────────────────────────────────────────────────────────────────
 const TABS = [
-    { key: 'users', label: '계정관리' },
+    { key: 'users',   label: '계정관리' },
     { key: 'special', label: '특수예약관리' },
+    { key: 'voucher', label: '바우처/팁 관리' },
 ];
 
 function TabBar({ activeTab, onTabChange }) {
@@ -791,6 +792,168 @@ function SpecialReservationTab() {
 }
 
 // ────────────────────────────────────────────────────────────────────
+// VoucherTipRow - 배우 1명 바우처/팁 입력 행
+// ────────────────────────────────────────────────────────────────────
+function VoucherTipRow({ entry, onChangeVoucher, onChangeTip }) {
+    const roleDisplay = getRoleDisplay(entry.role);
+
+    return e('div', { className: 'voucher-row' },
+        e('div', { className: 'voucher-row-info' },
+            e('span', { className: 'voucher-row-name' }, entry.userName),
+            roleDisplay && e('span', { className: 'badge badge-role' }, roleDisplay)
+        ),
+        e('div', { className: 'voucher-row-inputs' },
+            e('div', { className: 'voucher-input-group' },
+                e('label', { className: 'voucher-input-label' }, '바우처'),
+                e('input', {
+                    className: 'voucher-input',
+                    type: 'number',
+                    min: '0',
+                    step: '1000',
+                    value: entry.voucher,
+                    onChange: ev => onChangeVoucher(entry.userId, Number(ev.target.value) || 0),
+                })
+            ),
+            e('div', { className: 'voucher-input-group' },
+                e('label', { className: 'voucher-input-label' }, '팁'),
+                e('input', {
+                    className: 'voucher-input',
+                    type: 'number',
+                    min: '0',
+                    step: '1000',
+                    value: entry.tip,
+                    onChange: ev => onChangeTip(entry.userId, Number(ev.target.value) || 0),
+                })
+            )
+        )
+    );
+}
+
+// ────────────────────────────────────────────────────────────────────
+// VoucherTipTab - 바우처/팁 관리 탭
+// ────────────────────────────────────────────────────────────────────
+function VoucherTipTab() {
+    function todayString() {
+        const d = new Date();
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return yyyy + '-' + mm + '-' + dd;
+    }
+
+    const [date, setDate]       = React.useState(todayString());
+    const [entries, setEntries] = React.useState([]);
+    const [loading, setLoading] = React.useState(false);
+    const [saving, setSaving]   = React.useState(false);
+    const [message, setMessage] = React.useState('');
+    const [isError, setIsError] = React.useState(false);
+
+    function loadData(d) {
+        setLoading(true);
+        setMessage('');
+        apiFetch('/api/admin/voucher?date=' + d)
+            .then(data => {
+                if (data) setEntries(data);
+            })
+            .catch(err => {
+                setIsError(true);
+                setMessage(err.message || '데이터 조회 실패');
+            })
+            .finally(() => setLoading(false));
+    }
+
+    React.useEffect(() => {
+        loadData(date);
+    }, [date]);
+
+    function updateEntry(userId, field, value) {
+        setEntries(prev => prev.map(entry =>
+            entry.userId === userId ? Object.assign({}, entry, { [field]: value }) : entry
+        ));
+    }
+
+    async function handleSave() {
+        setSaving(true);
+        setMessage('');
+        setIsError(false);
+        try {
+            await apiFetch('/api/admin/voucher/save', {
+                method: 'POST',
+                body: JSON.stringify({ date, entries }),
+            });
+            setIsError(false);
+            setMessage('저장되었습니다.');
+        } catch (err) {
+            setIsError(true);
+            setMessage(err.message || '저장 실패');
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    // 합계 계산
+    const totalVoucher = entries.reduce((sum, e) => sum + (e.voucher || 0), 0);
+    const totalTip     = entries.reduce((sum, e) => sum + (e.tip || 0), 0);
+
+    function formatAmount(n) {
+        return n.toLocaleString('ko-KR') + '원';
+    }
+
+    return e('div', { className: 'admin-content' },
+
+        // ① 날짜 선택
+        e('div', { className: 'voucher-date-row' },
+            e('input', {
+                className: 'form-input voucher-date-input',
+                type: 'date',
+                value: date,
+                onChange: ev => setDate(ev.target.value),
+            })
+        ),
+
+        // ② 메시지
+        message && e('div', { className: 'msg ' + (isError ? 'msg-error' : 'msg-success') }, message),
+
+        // ③ 출근자 목록
+        loading
+            ? e('div', { className: 'loading-text' }, '불러오는 중...')
+            : entries.length === 0
+                ? e('div', { className: 'loading-text' }, '해당 날짜에 출근자가 없습니다.')
+                : e('div', null,
+                    e('div', { className: 'list-header' },
+                        e('div', { className: 'section-title' }, '출근자 바우처/팁 입력')
+                    ),
+                    e('div', { className: 'voucher-table' },
+                        ...entries.map(entry =>
+                            e(VoucherTipRow, {
+                                key: entry.userId,
+                                entry,
+                                onChangeVoucher: (uid, val) => updateEntry(uid, 'voucher', val),
+                                onChangeTip:     (uid, val) => updateEntry(uid, 'tip', val),
+                            })
+                        )
+                    ),
+
+                    // ④ 합계
+                    e('div', { className: 'voucher-summary' },
+                        e('span', null, '합계'),
+                        e('div', { className: 'voucher-summary-amounts' },
+                            e('span', null, '바우처 ', e('strong', null, formatAmount(totalVoucher))),
+                            e('span', null, '팁 ', e('strong', null, formatAmount(totalTip)))
+                        )
+                    ),
+
+                    // ⑤ 저장 버튼
+                    e('button', {
+                        className: 'btn-save-voucher',
+                        onClick: handleSave,
+                        disabled: saving,
+                    }, saving ? '저장 중...' : '전체 저장')
+                )
+    );
+}
+
+// ────────────────────────────────────────────────────────────────────
 // AdminPage - 최상위 컴포넌트
 // ────────────────────────────────────────────────────────────────────
 function AdminPage() {
@@ -821,6 +984,8 @@ function AdminPage() {
                 });
             case 'special':
                 return e(SpecialReservationTab, null);
+            case 'voucher':
+                return e(VoucherTipTab, null);
             default:
                 return null;
         }
