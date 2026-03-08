@@ -1041,7 +1041,7 @@ function CalendarPage() {
 
         popupDate && e(AdminPopup, {
             date: popupDate,
-            attendees: monthData.filter(d => d.date === popupDate),
+            attendees: sortByAccountTypeThenRole(monthData.filter(d => d.date === popupDate)),
             roleOptions,
             onClose: closePopup,
             onSaved: handlePopupSaved
