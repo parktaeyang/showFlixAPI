@@ -1038,7 +1038,7 @@ function VoucherTipTab() {
                 className: 'btn-save-voucher',
                 onClick: handleSave,
                 disabled: saving || entries.length === 0,
-            }, saving ? '저장 중...' : '전체 저장')
+            }, saving ? '저장 중...' : '저장')
         ),
 
         // ② 메시지
