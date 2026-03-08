@@ -805,25 +805,34 @@ function VoucherTipRow({ entry, onChangeVoucher, onChangeTip }) {
         e('div', { className: 'voucher-row-inputs' },
             e('div', { className: 'voucher-input-group' },
                 e('label', { className: 'voucher-input-label' }, '바우처'),
-                e('input', {
-                    className: 'voucher-input',
-                    type: 'number',
-                    min: '0',
-                    step: '1000',
-                    value: entry.voucher,
-                    onChange: ev => onChangeVoucher(entry.userId, Number(ev.target.value) || 0),
-                })
+                e('div', { className: 'voucher-input-wrap' },
+                    e('input', {
+                        className: 'voucher-input',
+                        type: 'number',
+                        min: '0',
+                        step: '1',
+                        value: entry.voucher,
+                        onChange: ev => onChangeVoucher(entry.userId, Number(ev.target.value) || 0),
+                    }),
+                    e('span', { className: 'voucher-input-unit' }, '개')
+                )
             ),
             e('div', { className: 'voucher-input-group' },
                 e('label', { className: 'voucher-input-label' }, '팁'),
-                e('input', {
-                    className: 'voucher-input',
-                    type: 'number',
-                    min: '0',
-                    step: '1000',
-                    value: entry.tip,
-                    onChange: ev => onChangeTip(entry.userId, Number(ev.target.value) || 0),
-                })
+                e('div', { className: 'voucher-input-wrap' },
+                    e('input', {
+                        className: 'voucher-input',
+                        type: 'text',
+                        inputMode: 'numeric',
+                        value: entry.tip > 0 ? entry.tip.toLocaleString('ko-KR') : '',
+                        placeholder: '0',
+                        onChange: ev => {
+                            const digits = ev.target.value.replace(/[^0-9]/g, '');
+                            onChangeTip(entry.userId, digits === '' ? 0 : parseInt(digits, 10));
+                        },
+                    }),
+                    e('span', { className: 'voucher-input-unit' }, '원')
+                )
             )
         )
     );
@@ -895,20 +904,21 @@ function VoucherTipTab() {
     const totalVoucher = entries.reduce((sum, e) => sum + (e.voucher || 0), 0);
     const totalTip     = entries.reduce((sum, e) => sum + (e.tip || 0), 0);
 
-    function formatAmount(n) {
-        return n.toLocaleString('ko-KR') + '원';
-    }
+    return e('div', { className: 'admin-content voucher-content' },
 
-    return e('div', { className: 'admin-content' },
-
-        // ① 날짜 선택
-        e('div', { className: 'voucher-date-row' },
+        // ① 날짜 + 저장 버튼 (고정 영역)
+        e('div', { className: 'voucher-sticky-bar' },
             e('input', {
                 className: 'form-input voucher-date-input',
                 type: 'date',
                 value: date,
                 onChange: ev => setDate(ev.target.value),
-            })
+            }),
+            e('button', {
+                className: 'btn-save-voucher',
+                onClick: handleSave,
+                disabled: saving || entries.length === 0,
+            }, saving ? '저장 중...' : '전체 저장')
         ),
 
         // ② 메시지
@@ -938,17 +948,10 @@ function VoucherTipTab() {
                     e('div', { className: 'voucher-summary' },
                         e('span', null, '합계'),
                         e('div', { className: 'voucher-summary-amounts' },
-                            e('span', null, '바우처 ', e('strong', null, formatAmount(totalVoucher))),
-                            e('span', null, '팁 ', e('strong', null, formatAmount(totalTip)))
+                            e('span', null, '바우처 ', e('strong', null, totalVoucher.toLocaleString('ko-KR') + '개')),
+                            e('span', null, '팁 ', e('strong', null, totalTip.toLocaleString('ko-KR') + '원'))
                         )
-                    ),
-
-                    // ⑤ 저장 버튼
-                    e('button', {
-                        className: 'btn-save-voucher',
-                        onClick: handleSave,
-                        disabled: saving,
-                    }, saving ? '저장 중...' : '전체 저장')
+                    )
                 )
     );
 }
