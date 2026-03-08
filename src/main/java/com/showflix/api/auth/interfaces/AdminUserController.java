@@ -28,8 +28,8 @@ public class AdminUserController {
     }
 
     // DTO 정의 (record)
-    record UserSummaryResponse(String userid, String username, boolean admin, String role) {}
-    record CreateUserRequest(String userid, String username, String password, boolean admin) {}
+    record UserSummaryResponse(String userid, String username, boolean admin, String accountType, String role, String recentRole) {}
+    record CreateUserRequest(String userid, String username, String accountType, String role) {}
     record UpdateUserRequest(String username, boolean admin) {}
     record ChangePasswordRequest(String newPassword) {}
 
@@ -45,7 +45,9 @@ public class AdminUserController {
                         u.getUserid(),
                         u.getUsername(),
                         u.isAdmin(),
-                        u.getRecentRole()  // 가장 최근 스케줄 역할 (없으면 null)
+                        u.getAccountType(),
+                        u.getRole(),
+                        u.getRecentRole()
                 ))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
@@ -54,16 +56,38 @@ public class AdminUserController {
     /**
      * 신규 계정 추가
      * POST /api/admin/users
+     * - 비밀번호는 서버에서 "showflix"로 고정
+     * - admin 여부는 accountType이 ADMIN이면 true로 자동 설정
      */
     @PostMapping
     public ResponseEntity<Map<String, String>> createUser(@RequestBody CreateUserRequest request) {
         adminUserService.createUser(
                 request.userid(),
                 request.username(),
-                request.password(),
-                request.admin()
+                request.accountType(),
+                request.role()
         );
         return ResponseEntity.ok(Map.of("message", "계정이 추가되었습니다."));
+    }
+
+    /**
+     * 계정유형별 다음 userid 자동생성
+     * GET /api/admin/users/next-userid?accountType=ACTOR
+     */
+    @GetMapping("/next-userid")
+    public ResponseEntity<Map<String, String>> getNextUserId(@RequestParam String accountType) {
+        String nextUserid = adminUserService.getNextUserId(accountType);
+        return ResponseEntity.ok(Map.of("nextUserid", nextUserid));
+    }
+
+    /**
+     * 계정유형별 선택 가능한 역할 목록 조회
+     * GET /api/admin/users/available-roles?accountType=ACTOR
+     */
+    @GetMapping("/available-roles")
+    public ResponseEntity<List<Map<String, String>>> getAvailableRoles(@RequestParam String accountType) {
+        List<Map<String, String>> roles = adminUserService.getAvailableRoles(accountType);
+        return ResponseEntity.ok(roles);
     }
 
     /**

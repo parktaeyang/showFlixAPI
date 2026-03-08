@@ -222,6 +222,11 @@ body {
     color: #92400e;
 }
 
+.badge-account-type {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
 .user-card-actions {
     display: flex;
     gap: 6px;

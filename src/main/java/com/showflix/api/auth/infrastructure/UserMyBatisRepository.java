@@ -36,6 +36,11 @@ public class UserMyBatisRepository implements UserRepository {
     }
 
     @Override
+    public Optional<String> findLastUseridByAccountType(String accountType) {
+        return Optional.ofNullable(userMapper.findLastUseridByAccountType(accountType));
+    }
+
+    @Override
     public void save(User user) {
         userMapper.save(user);
     }

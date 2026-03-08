@@ -24,6 +24,22 @@ const e = React.createElement;
 // 유틸
 // ────────────────────────────────────────────────────────────────────
 
+// 계정유형 목록
+const ACCOUNT_TYPES = [
+    { value: 'ACTOR',   label: '배우' },
+    { value: 'STAFF',   label: '스텝' },
+    { value: 'CAPTAIN', label: '캡틴' },
+    { value: 'ADMIN',   label: '관리자' },
+];
+
+// 계정유형 코드 → 한국어 표시명
+const ACCOUNT_TYPE_DISPLAY = {
+    ACTOR:   '배우',
+    STAFF:   '스텝',
+    CAPTAIN: '캡틴',
+    ADMIN:   '관리자',
+};
+
 // ScheduleRole enum 코드 → 한국어 표시명 매핑
 const ROLE_DISPLAY = {
     DOOR:    '도어',
@@ -256,13 +272,16 @@ function ChangePasswordPopup({ user, onClose, onSaved }) {
 // ────────────────────────────────────────────────────────────────────
 function UserCard({ user, currentUserid, onEdit, onChangePassword, onDelete }) {
     const isMe = user.userid === currentUserid;
-    const roleDisplay = getRoleDisplay(user.role);
+    const roleDisplay = getRoleDisplay(user.recentRole || user.role);
+    const accountTypeDisplay = user.accountType ? ACCOUNT_TYPE_DISPLAY[user.accountType] : null;
 
     return e('div', { className: 'user-card' },
         e('div', { className: 'user-card-top' },
             e('span', { className: 'user-card-id' }, user.userid),
             e('span', { className: 'user-card-name' }, user.username),
             e('div', { className: 'user-card-badges' },
+                // 계정유형 뱃지
+                accountTypeDisplay && e('span', { className: 'badge badge-account-type' }, accountTypeDisplay),
                 // 역할 뱃지 (스케줄 역할이 있을 때만)
                 roleDisplay && e('span', { className: 'badge badge-role' }, roleDisplay),
                 // 관리자/일반 뱃지
@@ -286,17 +305,44 @@ function UserCard({ user, currentUserid, onEdit, onChangePassword, onDelete }) {
 // AddUserForm - 신규 계정 추가 인라인 폼
 // ────────────────────────────────────────────────────────────────────
 function AddUserForm({ onAdded }) {
-    const [userid, setUserid] = React.useState('');
-    const [username, setUsername] = React.useState('');
-    const [password, setPassword] = React.useState('');
-    const [isAdmin, setIsAdmin] = React.useState(false);
-    const [error, setError] = React.useState('');
-    const [success, setSuccess] = React.useState('');
-    const [saving, setSaving] = React.useState(false);
+    const [accountType, setAccountType]     = React.useState('ACTOR');
+    const [availableRoles, setAvailableRoles] = React.useState([]);
+    const [selectedRole, setSelectedRole]   = React.useState('');
+    const [userid, setUserid]               = React.useState('');
+    const [username, setUsername]           = React.useState('');
+    const [error, setError]                 = React.useState('');
+    const [success, setSuccess]             = React.useState('');
+    const [saving, setSaving]               = React.useState(false);
+    const [loadingId, setLoadingId]         = React.useState(false);
+
+    // 초기 로드: 기본 계정유형(ACTOR)에 맞게 userid, 역할 목록 설정
+    React.useEffect(() => {
+        handleAccountTypeChange('ACTOR');
+    }, []);
+
+    async function handleAccountTypeChange(newType) {
+        setAccountType(newType);
+        setSelectedRole('');
+        setLoadingId(true);
+        try {
+            // 1. 다음 userid 자동생성
+            const idData = await apiFetch(`/api/admin/users/next-userid?accountType=${newType}`);
+            if (idData) setUserid(idData.nextUserid || '');
+
+            // 2. 선택 가능한 역할 목록 로드
+            const roleData = await apiFetch(`/api/admin/users/available-roles?accountType=${newType}`);
+            if (roleData) setAvailableRoles(roleData);
+            else setAvailableRoles([]);
+        } catch (err) {
+            setAvailableRoles([]);
+        } finally {
+            setLoadingId(false);
+        }
+    }
 
     async function handleAdd() {
-        if (!userid.trim() || !username.trim() || !password.trim()) {
-            setError('아이디, 이름, 비밀번호를 모두 입력해주세요.');
+        if (!userid.trim() || !username.trim()) {
+            setError('아이디와 이름을 모두 입력해주세요.');
             return;
         }
         setSaving(true);
@@ -308,16 +354,16 @@ function AddUserForm({ onAdded }) {
                 body: JSON.stringify({
                     userid: userid.trim(),
                     username: username.trim(),
-                    password,
-                    admin: isAdmin,
+                    accountType,
+                    role: selectedRole || null,
                 }),
             });
-            setUserid('');
             setUsername('');
-            setPassword('');
-            setIsAdmin(false);
-            setSuccess('계정이 추가되었습니다.');
+            setSelectedRole('');
+            setSuccess('계정이 추가되었습니다. (기본 비밀번호: showflix)');
             onAdded();
+            // 추가 후 다음 userid 재생성
+            handleAccountTypeChange(accountType);
         } catch (err) {
             setError(err.message || '추가 중 오류가 발생했습니다.');
         } finally {
@@ -325,15 +371,47 @@ function AddUserForm({ onAdded }) {
         }
     }
 
+    const hasRoles = availableRoles.length > 0;
+
     return e('div', { className: 'add-form-card' },
         e('div', { className: 'add-form-title' }, '+ 신규 계정 추가'),
         error && e('div', { className: 'msg msg-error' }, error),
         success && e('div', { className: 'msg msg-success' }, success),
+
+        // 1행: 계정유형 + 역할
+        e('div', { className: 'form-row' },
+            e('select', {
+                className: 'form-input',
+                value: accountType,
+                onChange: ev => handleAccountTypeChange(ev.target.value),
+            },
+                ACCOUNT_TYPES.map(at =>
+                    e('option', { key: at.value, value: at.value }, at.label)
+                )
+            ),
+            hasRoles
+                ? e('select', {
+                    className: 'form-input',
+                    value: selectedRole,
+                    onChange: ev => setSelectedRole(ev.target.value),
+                },
+                    e('option', { value: '' }, '역할 선택'),
+                    availableRoles.map(r =>
+                        e('option', { key: r.name, value: r.name }, r.displayName)
+                    )
+                )
+                : e('div', {
+                    className: 'form-input',
+                    style: { color: '#9ca3af', display: 'flex', alignItems: 'center', fontSize: '0.85rem' },
+                }, '역할 없음')
+        ),
+
+        // 2행: 아이디 + 이름
         e('div', { className: 'form-row' },
             e('input', {
                 className: 'form-input',
                 type: 'text',
-                placeholder: '아이디',
+                placeholder: loadingId ? '생성 중...' : '아이디',
                 value: userid,
                 onChange: ev => setUserid(ev.target.value),
             }),
@@ -343,28 +421,19 @@ function AddUserForm({ onAdded }) {
                 placeholder: '이름',
                 value: username,
                 onChange: ev => setUsername(ev.target.value),
-            }),
-            e('input', {
-                className: 'form-input',
-                type: 'password',
-                placeholder: '비밀번호',
-                value: password,
-                onChange: ev => setPassword(ev.target.value),
             })
         ),
-        e('div', { className: 'form-check-row' },
-            e('input', {
-                type: 'checkbox',
-                id: 'add-is-admin',
-                checked: isAdmin,
-                onChange: ev => setIsAdmin(ev.target.checked),
-            }),
-            e('label', { htmlFor: 'add-is-admin' }, '관리자 권한 부여')
+
+        // 기본 비밀번호 안내
+        e('div', { style: { fontSize: '0.78rem', color: '#6b7280', marginBottom: '8px' } },
+            '기본 비밀번호: ',
+            e('strong', null, 'showflix')
         ),
+
         e('button', {
             className: 'btn-add',
             onClick: handleAdd,
-            disabled: saving,
+            disabled: saving || loadingId,
         }, saving ? '추가 중...' : '계정 추가')
     );
 }

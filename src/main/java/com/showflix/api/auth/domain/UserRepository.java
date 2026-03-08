@@ -16,6 +16,9 @@ public interface UserRepository {
     // ── 관리자 계정관리용 ──────────────────────────────────────
     List<User> findAll();
 
+    // 계정유형별 마지막 userid 조회 (다음 번호 자동생성용)
+    Optional<String> findLastUseridByAccountType(String accountType);
+
     void save(User user);
 
     void update(User user);

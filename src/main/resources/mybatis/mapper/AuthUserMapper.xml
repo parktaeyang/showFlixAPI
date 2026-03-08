@@ -38,8 +38,10 @@
             u.userid,
             u.username,
             u.password,
-            u.is_admin AS admin,
-            r.role AS recentRole
+            u.is_admin       AS admin,
+            u.account_type   AS accountType,
+            u.role           AS role,
+            r.role           AS recentRole
         FROM schedule_users u
         LEFT JOIN (
             SELECT user_id, role
@@ -55,19 +57,30 @@
         ORDER BY u.username ASC
     </select>
 
+    <!-- 계정유형별 마지막 userid 조회 (다음 번호 자동생성용) -->
+    <select id="findLastUseridByAccountType" resultType="string">
+        SELECT userid
+        FROM schedule_users
+        WHERE account_type = #{accountType}
+        ORDER BY userid DESC
+        LIMIT 1
+    </select>
+
     <!-- 신규 계정 추가 -->
     <insert id="save"
             parameterType="com.showflix.api.auth.domain.User">
-        INSERT INTO schedule_users (userid, username, password, is_admin)
-        VALUES (#{userid}, #{username}, #{password}, #{admin})
+        INSERT INTO schedule_users (userid, username, password, is_admin, account_type, role)
+        VALUES (#{userid}, #{username}, #{password}, #{admin}, #{accountType}, #{role})
     </insert>
 
-    <!-- 계정 정보 수정 (username, is_admin) -->
+    <!-- 계정 정보 수정 (username, is_admin, account_type, role) -->
     <update id="update"
             parameterType="com.showflix.api.auth.domain.User">
         UPDATE schedule_users
-        SET username = #{username},
-            is_admin = #{admin}
+        SET username     = #{username},
+            is_admin     = #{admin},
+            account_type = #{accountType},
+            role         = #{role}
         WHERE userid = #{userid}
     </update>
 

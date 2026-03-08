@@ -10,7 +10,9 @@ public class User {
     private String username;
     private String password; // 해시된 비밀번호
     private boolean admin;
-    private String recentRole; // 가장 최근 selected_date의 role (관리자 페이지용)
+    private String accountType; // AccountType.name() 값 (ACTOR, STAFF, CAPTAIN, ADMIN)
+    private String role;        // 계정 생성 시 지정된 역할 - ScheduleRole.name() 값 (DOOR, MALE1 등), nullable
+    private String recentRole;  // 가장 최근 selected_date의 role (관리자 페이지용)
 
     public String getUserid() {
         return userid;
@@ -42,6 +44,22 @@ public class User {
 
     public void setAdmin(boolean admin) {
         this.admin = admin;
+    }
+
+    public String getAccountType() {
+        return accountType;
+    }
+
+    public void setAccountType(String accountType) {
+        this.accountType = accountType;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public String getRecentRole() {
