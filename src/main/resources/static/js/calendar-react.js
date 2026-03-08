@@ -39,6 +39,26 @@ const DEFAULT_TIME_SLOTS = [
 ];
 
 // ────────────────────────────────────────────────────────────────────
+// 계정유형 그룹 정렬
+// ────────────────────────────────────────────────────────────────────
+// 정렬 우선순위: 배우(1) → 스탭(2) → 캡틴(3) → 관리자(4)
+const ACCOUNT_TYPE_ORDER = { ACTOR: 1, STAFF: 2, CAPTAIN: 3, ADMIN: 4 };
+
+function getAccountTypeClass(accountType) {
+    const map = { ACTOR: 'actor', STAFF: 'staff', CAPTAIN: 'captain', ADMIN: 'admin' };
+    return map[accountType] || 'admin';
+}
+
+function sortByAccountTypeThenName(list) {
+    return [...list].sort((a, b) => {
+        const ga = ACCOUNT_TYPE_ORDER[a.accountType] ?? 4;
+        const gb = ACCOUNT_TYPE_ORDER[b.accountType] ?? 4;
+        if (ga !== gb) return ga - gb;
+        return a.userName.localeCompare(b.userName, 'ko');
+    });
+}
+
+// ────────────────────────────────────────────────────────────────────
 // 비밀번호 변경 모달
 // ────────────────────────────────────────────────────────────────────
 function ChangePasswordModal({ onClose }) {
@@ -466,7 +486,7 @@ function AdminPopup({ date, attendees, roleOptions, onClose, onSaved }) {
                                     attendees.map(a =>
                                         e('tr', { key: a.userId },
                                             e('td', {
-                                                className: 'attendee-name deletable',
+                                                className: `attendee-name deletable ${getAccountTypeClass(a.accountType)}`,
                                                 title: '클릭하여 삭제',
                                                 onClick: () => handleDeleteUser(a.userId, a.userName)
                                             }, a.userName),
@@ -568,8 +588,8 @@ function CalendarCell({ year, month, day, isToday, isSelected, cellData, isAdmin
     const isSunday = dow === 0;
     const isSaturday = dow === 6;
 
-    const confirmedPeople = cellData.filter(d => d.confirmed === 'Y');
-    const unconfirmedPeople = cellData.filter(d => d.confirmed !== 'Y');
+    const confirmedPeople = sortByAccountTypeThenName(cellData.filter(d => d.confirmed === 'Y'));
+    const unconfirmedPeople = sortByAccountTypeThenName(cellData.filter(d => d.confirmed !== 'Y'));
 
     let cellClass = 'cal-cell';
     if (isToday) cellClass += ' today';
@@ -598,10 +618,18 @@ function CalendarCell({ year, month, day, isToday, isSelected, cellData, isAdmin
         isSelected && e('div', { className: 'my-badge' }, '✓'),
         e('div', { className: 'badges-wrap' },
             confirmedPeople.map(d =>
-                e('span', { key: d.userId, className: 'person-badge confirmed', title: d.role || '' }, d.userName)
+                e('span', {
+                    key: d.userId,
+                    className: `person-badge confirmed ${getAccountTypeClass(d.accountType)}`,
+                    title: d.role || ''
+                }, d.userName)
             ),
             unconfirmedPeople.map(d =>
-                e('span', { key: d.userId, className: 'person-badge unconfirmed', title: '미확정' }, d.userName)
+                e('span', {
+                    key: d.userId,
+                    className: `person-badge unconfirmed ${getAccountTypeClass(d.accountType)}`,
+                    title: '미확정'
+                }, d.userName)
             )
         )
     );
@@ -721,25 +749,32 @@ function AdminNoteSection({ isAdmin }) {
 function AttendeeSection({ monthData }) {
     const byPerson = {};
     monthData.forEach(d => {
-        if (!byPerson[d.userName]) byPerson[d.userName] = { confirmed: [], unconfirmed: [] };
+        if (!byPerson[d.userName]) {
+            byPerson[d.userName] = { confirmed: [], unconfirmed: [], accountType: d.accountType };
+        }
         if (d.confirmed === 'Y') byPerson[d.userName].confirmed.push(d.date);
         else byPerson[d.userName].unconfirmed.push(d.date);
     });
 
-    const names = Object.keys(byPerson).sort();
-    if (names.length === 0) return null;
+    const entries = Object.entries(byPerson).sort(([nameA, dataA], [nameB, dataB]) => {
+        const ga = ACCOUNT_TYPE_ORDER[dataA.accountType] ?? 4;
+        const gb = ACCOUNT_TYPE_ORDER[dataB.accountType] ?? 4;
+        if (ga !== gb) return ga - gb;
+        return nameA.localeCompare(nameB, 'ko');
+    });
+    if (entries.length === 0) return null;
 
     return e('div', { className: 'attendee-section' },
         e('h3', { className: 'attendee-title' }, '이번 달 스케줄'),
         e('div', { className: 'attendee-list' },
-            names.map(name =>
+            entries.map(([name, data]) =>
                 e('div', { key: name, className: 'attendee-row' },
                     e('span', { className: 'attendee-name-label' }, name),
                     e('div', { className: 'attendee-dates' },
-                        byPerson[name].confirmed.map(d =>
+                        data.confirmed.map(d =>
                             e('span', { key: d, className: 'date-tag confirmed-tag' }, d.slice(5))
                         ),
-                        byPerson[name].unconfirmed.map(d =>
+                        data.unconfirmed.map(d =>
                             e('span', { key: d, className: 'date-tag unconfirmed-tag' }, d.slice(5))
                         )
                     )

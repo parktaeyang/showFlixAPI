@@ -12,13 +12,23 @@
         <result property="role" column="role"/>
         <result property="confirmed" column="confirmed"/>
         <result property="remarks" column="remarks"/>
+        <result property="accountType" column="account_type"/>
     </resultMap>
 
     <select id="findByDateBetween" resultMap="SelectedDateResult">
-        SELECT date, user_id, user_name, open_hope, role, confirmed, remarks
-        FROM selected_date
-        WHERE date BETWEEN #{start} AND #{end}
-        ORDER BY date, user_id
+        SELECT
+            sd.date,
+            sd.user_id,
+            sd.user_name,
+            sd.open_hope,
+            sd.role,
+            sd.confirmed,
+            sd.remarks,
+            u.account_type
+        FROM selected_date sd
+        LEFT JOIN schedule_users u ON sd.user_id = u.userid
+        WHERE sd.date BETWEEN #{start} AND #{end}
+        ORDER BY sd.date, sd.user_id
     </select>
 
     <insert id="insert">

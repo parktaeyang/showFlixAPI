@@ -23,7 +23,8 @@ public final class ScheduleDateAssembler {
                 domain.isOpenHope(),
                 domain.getRole(),
                 domain.getConfirmed(),
-                domain.getRemarks()
+                domain.getRemarks(),
+                domain.getAccountType()
         );
     }
 

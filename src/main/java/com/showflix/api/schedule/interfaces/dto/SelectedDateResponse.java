@@ -12,5 +12,6 @@ public record SelectedDateResponse(
         @JsonProperty("openHope") boolean openHope,
         String role,
         String confirmed,
-        String remarks
+        String remarks,
+        String accountType
 ) {}

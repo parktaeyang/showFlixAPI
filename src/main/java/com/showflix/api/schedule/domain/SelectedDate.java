@@ -12,6 +12,7 @@ public class SelectedDate {
     private String role;
     private String confirmed;
     private String remarks;
+    private String accountType;
 
     public String getDate() {
         return date;
@@ -67,5 +68,13 @@ public class SelectedDate {
 
     public void setRemarks(String remarks) {
         this.remarks = remarks;
+    }
+
+    public String getAccountType() {
+        return accountType;
+    }
+
+    public void setAccountType(String accountType) {
+        this.accountType = accountType;
     }
 }
