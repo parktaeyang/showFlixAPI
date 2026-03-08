@@ -44,16 +44,32 @@ const DEFAULT_TIME_SLOTS = [
 // 정렬 우선순위: 배우(1) → 스탭(2) → 캡틴(3) → 관리자(4)
 const ACCOUNT_TYPE_ORDER = { ACTOR: 1, STAFF: 2, CAPTAIN: 3, ADMIN: 4 };
 
+// 역할 코드별 가나다 정렬 순서 (한글 표시명 기준 명시적 정의)
+// 배우: 남1(1) 남2(2) 남3(3) 여1(4) 여2(5) 여3(6)
+// 스탭: 도어(7) 오퍼(8) 주방(9) 헬퍼(10) 홀맨(11)
+const ROLE_ORDER = {
+    MALE1: 1, MALE2: 2, MALE3: 3,
+    FEMALE1: 4, FEMALE2: 5, FEMALE3: 6,
+    DOOR: 7, OPER: 8, KITCHEN: 9, HELPER: 10, HOLEMAN: 11
+};
+
+function getRoleOrder(role) {
+    return ROLE_ORDER[role] ?? 99;
+}
+
 function getAccountTypeClass(accountType) {
     const map = { ACTOR: 'actor', STAFF: 'staff', CAPTAIN: 'captain', ADMIN: 'admin' };
     return map[accountType] || 'admin';
 }
 
-function sortByAccountTypeThenName(list) {
+function sortByAccountTypeThenRole(list) {
     return [...list].sort((a, b) => {
         const ga = ACCOUNT_TYPE_ORDER[a.accountType] ?? 4;
         const gb = ACCOUNT_TYPE_ORDER[b.accountType] ?? 4;
         if (ga !== gb) return ga - gb;
+        const ra = getRoleOrder(a.role);
+        const rb = getRoleOrder(b.role);
+        if (ra !== rb) return ra - rb;
         return a.userName.localeCompare(b.userName, 'ko');
     });
 }
@@ -588,8 +604,8 @@ function CalendarCell({ year, month, day, isToday, isSelected, cellData, isAdmin
     const isSunday = dow === 0;
     const isSaturday = dow === 6;
 
-    const confirmedPeople = sortByAccountTypeThenName(cellData.filter(d => d.confirmed === 'Y'));
-    const unconfirmedPeople = sortByAccountTypeThenName(cellData.filter(d => d.confirmed !== 'Y'));
+    const confirmedPeople = sortByAccountTypeThenRole(cellData.filter(d => d.confirmed === 'Y'));
+    const unconfirmedPeople = sortByAccountTypeThenRole(cellData.filter(d => d.confirmed !== 'Y'));
 
     let cellClass = 'cal-cell';
     if (isToday) cellClass += ' today';
@@ -760,6 +776,9 @@ function AttendeeSection({ monthData }) {
         const ga = ACCOUNT_TYPE_ORDER[dataA.accountType] ?? 4;
         const gb = ACCOUNT_TYPE_ORDER[dataB.accountType] ?? 4;
         if (ga !== gb) return ga - gb;
+        const ra = getRoleOrder(dataA.role);
+        const rb = getRoleOrder(dataB.role);
+        if (ra !== rb) return ra - rb;
         return nameA.localeCompare(nameB, 'ko');
     });
     if (entries.length === 0) return null;
