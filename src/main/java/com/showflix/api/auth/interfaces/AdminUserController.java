@@ -30,7 +30,7 @@ public class AdminUserController {
     // DTO 정의 (record)
     record UserSummaryResponse(String userid, String username, boolean admin, String accountType, String role, String recentRole) {}
     record CreateUserRequest(String userid, String username, String accountType, String role) {}
-    record UpdateUserRequest(String username, boolean admin) {}
+    record UpdateUserRequest(String username, String accountType, String role) {}
     record ChangePasswordRequest(String newPassword) {}
 
     /**
@@ -98,7 +98,7 @@ public class AdminUserController {
     public ResponseEntity<Map<String, String>> updateUser(
             @PathVariable String userid,
             @RequestBody UpdateUserRequest request) {
-        adminUserService.updateUser(userid, request.username(), request.admin());
+        adminUserService.updateUser(userid, request.username(), request.accountType(), request.role());
         return ResponseEntity.ok(Map.of("message", "계정이 수정되었습니다."));
     }
 

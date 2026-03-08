@@ -137,10 +137,33 @@ function TabBar({ activeTab, onTabChange }) {
 // EditUserPopup - 계정 수정 팝업
 // ────────────────────────────────────────────────────────────────────
 function EditUserPopup({ user, onClose, onSaved }) {
-    const [username, setUsername] = React.useState(user.username);
-    const [isAdmin, setIsAdmin] = React.useState(user.admin);
-    const [error, setError] = React.useState('');
-    const [saving, setSaving] = React.useState(false);
+    const [username, setUsername]           = React.useState(user.username);
+    const [accountType, setAccountType]     = React.useState(user.accountType || 'ACTOR');
+    const [availableRoles, setAvailableRoles] = React.useState([]);
+    const [selectedRole, setSelectedRole]   = React.useState(user.role || '');
+    const [error, setError]                 = React.useState('');
+    const [saving, setSaving]               = React.useState(false);
+
+    // 초기 역할 목록 로드
+    React.useEffect(() => {
+        loadRoles(accountType);
+    }, []);
+
+    async function loadRoles(type) {
+        try {
+            const roleData = await apiFetch(`/api/admin/users/available-roles?accountType=${type}`);
+            if (roleData) setAvailableRoles(roleData);
+            else setAvailableRoles([]);
+        } catch {
+            setAvailableRoles([]);
+        }
+    }
+
+    function handleAccountTypeChange(newType) {
+        setAccountType(newType);
+        setSelectedRole('');
+        loadRoles(newType);
+    }
 
     async function handleSave() {
         if (!username.trim()) {
@@ -152,7 +175,11 @@ function EditUserPopup({ user, onClose, onSaved }) {
         try {
             await apiFetch(`/api/admin/users/${user.userid}`, {
                 method: 'PUT',
-                body: JSON.stringify({ username: username.trim(), admin: isAdmin }),
+                body: JSON.stringify({
+                    username: username.trim(),
+                    accountType,
+                    role: selectedRole || null,
+                }),
             });
             onSaved();
         } catch (err) {
@@ -162,14 +189,18 @@ function EditUserPopup({ user, onClose, onSaved }) {
         }
     }
 
+    const hasRoles = availableRoles.length > 0;
+
     return e('div', { className: 'popup-overlay', onClick: onClose },
         e('div', { className: 'popup-box', onClick: ev => ev.stopPropagation() },
             e('div', { className: 'popup-title' }, '계정 수정'),
+            e('div', { style: { fontSize: '0.78rem', color: '#9ca3af', marginBottom: '12px' } },
+                '아이디: ', e('strong', null, user.userid)
+            ),
             error && e('div', { className: 'msg msg-error' }, error),
+
+            // 이름
             e('div', { className: 'form-row' },
-                e('div', { style: { fontSize: '0.78rem', color: '#9ca3af', marginBottom: '4px' } },
-                    '아이디: ', e('strong', null, user.userid)
-                ),
                 e('input', {
                     className: 'form-input',
                     type: 'text',
@@ -178,15 +209,35 @@ function EditUserPopup({ user, onClose, onSaved }) {
                     onChange: ev => setUsername(ev.target.value),
                 })
             ),
-            e('div', { className: 'form-check-row' },
-                e('input', {
-                    type: 'checkbox',
-                    id: 'edit-is-admin',
-                    checked: isAdmin,
-                    onChange: ev => setIsAdmin(ev.target.checked),
-                }),
-                e('label', { htmlFor: 'edit-is-admin' }, '관리자 권한')
+
+            // 계정유형 + 역할
+            e('div', { className: 'form-row' },
+                e('select', {
+                    className: 'form-input',
+                    value: accountType,
+                    onChange: ev => handleAccountTypeChange(ev.target.value),
+                },
+                    ACCOUNT_TYPES.map(at =>
+                        e('option', { key: at.value, value: at.value }, at.label)
+                    )
+                ),
+                hasRoles
+                    ? e('select', {
+                        className: 'form-input',
+                        value: selectedRole,
+                        onChange: ev => setSelectedRole(ev.target.value),
+                    },
+                        e('option', { value: '' }, '역할 선택'),
+                        availableRoles.map(r =>
+                            e('option', { key: r.name, value: r.name }, r.displayName)
+                        )
+                    )
+                    : e('div', {
+                        className: 'form-input',
+                        style: { color: '#9ca3af', display: 'flex', alignItems: 'center', fontSize: '0.85rem' },
+                    }, '역할 없음')
             ),
+
             e('div', { className: 'popup-actions' },
                 e('button', { className: 'btn-cancel', onClick: onClose }, '취소'),
                 e('button', {

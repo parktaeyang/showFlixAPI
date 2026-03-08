@@ -127,16 +127,23 @@ public class AdminUserService {
     }
 
     @Transactional
-    public void updateUser(String userid, String username, boolean admin) {
+    public void updateUser(String userid, String username, String accountType, String role) {
         if (username == null || username.isBlank()) {
             throw new IllegalArgumentException("이름을 입력해주세요.");
         }
+        if (accountType == null || accountType.isBlank()) {
+            throw new IllegalArgumentException("계정유형을 선택해주세요.");
+        }
+
+        AccountType.valueOf(accountType); // 유효성 검증
 
         User user = userRepository.findByUserid(userid)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다: " + userid));
 
         user.setUsername(username);
-        user.setAdmin(admin);
+        user.setAdmin("ADMIN".equals(accountType));
+        user.setAccountType(accountType);
+        user.setRole((role == null || role.isBlank()) ? null : role);
 
         userRepository.update(user);
     }
