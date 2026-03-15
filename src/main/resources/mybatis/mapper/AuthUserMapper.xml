@@ -69,8 +69,8 @@
     <!-- 신규 계정 추가 -->
     <insert id="save"
             parameterType="com.showflix.api.auth.domain.User">
-        INSERT INTO schedule_users (userid, username, password, is_admin, account_type, role)
-        VALUES (#{userid}, #{username}, #{password}, #{admin}, #{accountType}, #{role})
+        INSERT INTO schedule_users (userid, username, password, is_admin, account_type, role, created_at)
+        VALUES (#{userid}, #{username}, #{password}, #{admin}, #{accountType}, #{role}, NOW())
     </insert>
 
     <!-- 계정 정보 수정 (username, is_admin, account_type, role) -->
