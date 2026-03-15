@@ -36,6 +36,11 @@ public class UserMyBatisRepository implements UserRepository {
     }
 
     @Override
+    public List<User> findAllSorted(String sortBy, String sortDir) {
+        return userMapper.findAllSorted(sortBy, sortDir);
+    }
+
+    @Override
     public Optional<String> findLastUseridByAccountType(String accountType) {
         return Optional.ofNullable(userMapper.findLastUseridByAccountType(accountType));
     }

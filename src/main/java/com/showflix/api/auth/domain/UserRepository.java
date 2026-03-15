@@ -16,6 +16,10 @@ public interface UserRepository {
     // ── 관리자 계정관리용 ──────────────────────────────────────
     List<User> findAll();
 
+    // 정렬 조건을 적용한 전체 사용자 목록 조회
+    // sortBy: "userid" | "username", sortDir: "asc" | "desc"
+    List<User> findAllSorted(String sortBy, String sortDir);
+
     // 계정유형별 마지막 userid 조회 (다음 번호 자동생성용)
     Optional<String> findLastUseridByAccountType(String accountType);
 

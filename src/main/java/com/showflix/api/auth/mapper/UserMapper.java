@@ -19,6 +19,8 @@ public interface UserMapper {
     // ── 관리자 계정관리용 ──────────────────────────────────────
     List<User> findAll();
 
+    List<User> findAllSorted(@Param("sortBy") String sortBy, @Param("sortDir") String sortDir);
+
     // 계정유형별 마지막 userid 조회 (다음 번호 자동생성용)
     String findLastUseridByAccountType(@Param("accountType") String accountType);
 

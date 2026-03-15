@@ -28,8 +28,12 @@ public class AdminUserService {
     }
 
     @Transactional(readOnly = true)
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<User> getAllUsers(String sortBy, String sortDir) {
+        // sortBy 값 검증: userid, username만 허용
+        String validSortBy = ("userid".equals(sortBy)) ? "userid" : "username";
+        // sortDir 값 검증: desc만 허용, 나머지는 asc
+        String validSortDir = ("desc".equals(sortDir)) ? "desc" : "asc";
+        return userRepository.findAllSorted(validSortBy, validSortDir);
     }
 
     /**

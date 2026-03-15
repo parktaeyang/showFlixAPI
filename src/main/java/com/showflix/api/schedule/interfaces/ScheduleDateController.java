@@ -234,7 +234,7 @@ public class ScheduleDateController {
     @GetMapping("/users")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserListResponse>> listUsers() {
-        List<User> users = adminUserService.getAllUsers();
+        List<User> users = adminUserService.getAllUsers("username", "asc");
         List<UserListResponse> responses = users.stream()
                 .map(u -> new UserListResponse(u.getUserid(), u.getUsername()))
                 .toList();

@@ -495,10 +495,12 @@ function UserManagementTab({ currentUserid }) {
     const [editTarget, setEditTarget] = React.useState(null);
     const [pwTarget, setPwTarget] = React.useState(null);
     const [roleFilter, setRoleFilter] = React.useState('ALL');
+    const [sortBy, setSortBy] = React.useState('userid');
+    const [sortDir, setSortDir] = React.useState('asc');
 
-    function loadUsers() {
+    function loadUsers(by, dir) {
         setLoading(true);
-        apiFetch('/api/admin/users')
+        apiFetch('/api/admin/users?sortBy=' + by + '&sortDir=' + dir)
             .then(data => {
                 if (data) setUsers(data);
             })
@@ -507,19 +509,35 @@ function UserManagementTab({ currentUserid }) {
     }
 
     React.useEffect(() => {
-        loadUsers();
-    }, []);
+        loadUsers(sortBy, sortDir);
+    }, [sortBy, sortDir]);
+
+    function handleSort(column) {
+        if (sortBy === column) {
+            // 같은 컬럼 클릭 시 방향 토글
+            const newDir = sortDir === 'asc' ? 'desc' : 'asc';
+            setSortDir(newDir);
+        } else {
+            setSortBy(column);
+            setSortDir('asc');
+        }
+    }
+
+    function getSortIcon(column) {
+        if (sortBy !== column) return ' ↕';
+        return sortDir === 'asc' ? ' ↑' : ' ↓';
+    }
 
     function handleDelete(user) {
         if (!confirm(`'${user.username}' 계정을 삭제하시겠습니까?`)) return;
         apiFetch(`/api/admin/users/${user.userid}`, { method: 'DELETE' })
-            .then(() => loadUsers())
+            .then(() => loadUsers(sortBy, sortDir))
             .catch(err => alert(err.message || '삭제 실패'));
     }
 
     function handleEditSaved() {
         setEditTarget(null);
-        loadUsers();
+        loadUsers(sortBy, sortDir);
     }
 
     function handlePwSaved() {
@@ -537,18 +555,28 @@ function UserManagementTab({ currentUserid }) {
     return e('div', { className: 'admin-content' },
 
         // ① 신규 계정 추가 폼 (최상단)
-        e(AddUserForm, { onAdded: loadUsers }),
+        e(AddUserForm, { onAdded: () => loadUsers(sortBy, sortDir) }),
 
-        // ② 계정 목록 헤더: 제목(좌) + 역할 필터(우)
+        // ② 계정 목록 헤더: 제목(좌) + 정렬 버튼 + 역할 필터(우)
         e('div', { className: 'list-header' },
             e('div', { className: 'section-title' }, '계정 목록'),
-            e('select', {
-                className: 'role-filter-select',
-                value: roleFilter,
-                onChange: ev => setRoleFilter(ev.target.value),
-            },
-                ROLE_FILTER_OPTIONS.map(opt =>
-                    e('option', { key: opt.value, value: opt.value }, opt.label)
+            e('div', { style: { display: 'flex', alignItems: 'center', gap: '6px' } },
+                e('button', {
+                    className: 'sort-btn' + (sortBy === 'userid' ? ' sort-btn-active' : ''),
+                    onClick: () => handleSort('userid'),
+                }, '아이디순' + getSortIcon('userid')),
+                e('button', {
+                    className: 'sort-btn' + (sortBy === 'username' ? ' sort-btn-active' : ''),
+                    onClick: () => handleSort('username'),
+                }, '이름순' + getSortIcon('username')),
+                e('select', {
+                    className: 'role-filter-select',
+                    value: roleFilter,
+                    onChange: ev => setRoleFilter(ev.target.value),
+                },
+                    ROLE_FILTER_OPTIONS.map(opt =>
+                        e('option', { key: opt.value, value: opt.value }, opt.label)
+                    )
                 )
             )
         ),

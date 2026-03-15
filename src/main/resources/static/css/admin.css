@@ -754,3 +754,30 @@ body {
     font-family: inherit;
     line-height: 1.5;
 }
+
+/* ==========================================
+   계정 목록 - 정렬 버튼
+   ========================================== */
+.sort-btn {
+    padding: 4px 10px;
+    font-size: 0.78rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #f9fafb;
+    color: #374151;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.sort-btn:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.sort-btn-active {
+    background: #ede9fe;
+    border-color: #7c3aed;
+    color: #6d28d9;
+    font-weight: 600;
+}

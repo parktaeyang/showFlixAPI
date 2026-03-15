@@ -35,11 +35,15 @@ public class AdminUserController {
 
     /**
      * 전체 사용자 목록 조회
-     * GET /api/admin/users
+     * GET /api/admin/users?sortBy=userid&sortDir=asc
+     * - sortBy: userid | username (기본값: username)
+     * - sortDir: asc | desc   (기본값: asc)
      */
     @GetMapping
-    public ResponseEntity<List<UserSummaryResponse>> getAllUsers() {
-        List<User> users = adminUserService.getAllUsers();
+    public ResponseEntity<List<UserSummaryResponse>> getAllUsers(
+            @RequestParam(defaultValue = "username") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        List<User> users = adminUserService.getAllUsers(sortBy, sortDir);
         List<UserSummaryResponse> responses = users.stream()
                 .map(u -> new UserSummaryResponse(
                         u.getUserid(),
