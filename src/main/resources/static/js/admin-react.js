@@ -366,30 +366,26 @@ function AddUserForm({ onAdded }) {
     const [saving, setSaving]               = React.useState(false);
     const [loadingId, setLoadingId]         = React.useState(false);
 
-    // 초기 로드: 기본 계정유형(ACTOR)에 맞게 userid, 역할 목록 설정
+    // accountType이 바뀔 때마다(초기 마운트 포함) userid와 역할 목록을 새로 조회
     React.useEffect(() => {
-        handleAccountTypeChange('ACTOR');
-    }, []);
-
-    async function handleAccountTypeChange(newType) {
-        setAccountType(newType);
+        let cancelled = false;
         setSelectedRole('');
         setLoadingId(true);
-        try {
-            // 1. 다음 userid 자동생성
-            const idData = await apiFetch(`/api/admin/users/next-userid?accountType=${newType}`);
+        Promise.all([
+            apiFetch(`/api/admin/users/next-userid?accountType=${accountType}`),
+            apiFetch(`/api/admin/users/available-roles?accountType=${accountType}`)
+        ]).then(([idData, roleData]) => {
+            if (cancelled) return;
             if (idData) setUserid(idData.nextUserid || '');
-
-            // 2. 선택 가능한 역할 목록 로드
-            const roleData = await apiFetch(`/api/admin/users/available-roles?accountType=${newType}`);
             if (roleData) setAvailableRoles(roleData);
             else setAvailableRoles([]);
-        } catch (err) {
-            setAvailableRoles([]);
-        } finally {
-            setLoadingId(false);
-        }
-    }
+        }).catch(() => {
+            if (!cancelled) setAvailableRoles([]);
+        }).finally(() => {
+            if (!cancelled) setLoadingId(false);
+        });
+        return () => { cancelled = true; };
+    }, [accountType]);
 
     async function handleAdd() {
         if (!userid.trim() || !username.trim()) {
@@ -414,7 +410,8 @@ function AddUserForm({ onAdded }) {
             setSuccess('계정이 추가되었습니다. (기본 비밀번호: showflix)');
             onAdded();
             // 추가 후 다음 userid 재생성
-            handleAccountTypeChange(accountType);
+            const idData = await apiFetch(`/api/admin/users/next-userid?accountType=${accountType}`);
+            if (idData) setUserid(idData.nextUserid || '');
         } catch (err) {
             setError(err.message || '추가 중 오류가 발생했습니다.');
         } finally {
@@ -434,7 +431,7 @@ function AddUserForm({ onAdded }) {
             e('select', {
                 className: 'form-input',
                 value: accountType,
-                onChange: ev => handleAccountTypeChange(ev.target.value),
+                onChange: ev => setAccountType(ev.target.value),
             },
                 ACCOUNT_TYPES.map(at =>
                     e('option', { key: at.value, value: at.value }, at.label)
