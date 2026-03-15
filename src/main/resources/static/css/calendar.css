@@ -109,6 +109,22 @@ html, body {
 
 .nav-btn:hover { transform: scale(1.1); }
 
+.excel-export-btn {
+  padding: 5px 12px;
+  background: #1d6f42;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 10px;
+  transition: background 0.15s;
+}
+.excel-export-btn:hover {
+  background: #155233;
+}
+
 .cal-month-label {
   font-size: 1.1em;
   font-weight: 700;

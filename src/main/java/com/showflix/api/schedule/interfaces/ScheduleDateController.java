@@ -5,6 +5,7 @@ import com.showflix.api.auth.application.AdminUserService;
 import com.showflix.api.auth.domain.User;
 import com.showflix.api.auth.infrastructure.security.CustomUserDetails;
 import com.showflix.api.schedule.application.AdminNoteService;
+import com.showflix.api.schedule.application.CalendarExcelService;
 import com.showflix.api.schedule.application.ScheduleTimeSlotService;
 import com.showflix.api.schedule.application.SelectedDateService;
 import com.showflix.api.schedule.application.command.ConfirmScheduleCommand;
@@ -16,12 +17,16 @@ import com.showflix.api.schedule.domain.ScheduleRole;
 import com.showflix.api.schedule.interfaces.assembler.ScheduleDateAssembler;
 import com.showflix.api.schedule.interfaces.dto.MonthDataResponse;
 import com.showflix.api.schedule.interfaces.dto.SelectedDateResponse;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -38,15 +43,42 @@ public class ScheduleDateController {
     private final ScheduleTimeSlotService timeSlotService;
     private final AdminNoteService adminNoteService;
     private final AdminUserService adminUserService;
+    private final CalendarExcelService calendarExcelService;
 
     public ScheduleDateController(SelectedDateService selectedDateService,
                                   ScheduleTimeSlotService timeSlotService,
                                   AdminNoteService adminNoteService,
-                                  AdminUserService adminUserService) {
+                                  AdminUserService adminUserService,
+                                  CalendarExcelService calendarExcelService) {
         this.selectedDateService = selectedDateService;
         this.timeSlotService = timeSlotService;
         this.adminNoteService = adminNoteService;
         this.adminUserService = adminUserService;
+        this.calendarExcelService = calendarExcelService;
+    }
+
+    /**
+     * 월별 달력 Excel 다운로드 (관리자 전용)
+     * GET /api/schedule/dates/export?year=2026&month=3
+     */
+    @GetMapping("/export")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<byte[]> exportMonthlyCalendar(
+            @RequestParam int year,
+            @RequestParam int month) {
+        MonthQueryCommand command = new MonthQueryCommand(year, month);
+        SelectedDateService.MonthResult result = selectedDateService.getDatesByMonth(command);
+
+        byte[] excelBytes = calendarExcelService.generateMonthlyCalendar(year, month, result.getData());
+
+        String filename = year + "년_" + month + "월_달력.xlsx";
+        String encodedFilename = URLEncoder.encode(filename, StandardCharsets.UTF_8).replace("+", "%20");
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encodedFilename)
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(excelBytes);
     }
 
     /**

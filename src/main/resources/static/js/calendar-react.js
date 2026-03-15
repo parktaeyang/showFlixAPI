@@ -1007,7 +1007,12 @@ function CalendarPage() {
         e('div', { className: 'cal-nav' },
             e('button', { className: 'nav-btn', onClick: prevMonth }, '‹'),
             e('span', { className: 'cal-month-label' }, `${year}년 ${month}월`),
-            e('button', { className: 'nav-btn', onClick: nextMonth }, '›')
+            e('button', { className: 'nav-btn', onClick: nextMonth }, '›'),
+            isAdmin && e('button', {
+                className: 'excel-export-btn',
+                onClick: () => { window.location.href = `/api/schedule/dates/export?year=${year}&month=${month}`; },
+                title: `${year}년 ${month}월 달력 Excel 내보내기`
+            }, '엑셀 다운로드')
         ),
 
         loading
