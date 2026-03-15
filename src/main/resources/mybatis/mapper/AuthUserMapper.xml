@@ -91,11 +91,12 @@
     </select>
 
     <!-- 계정유형별 마지막 userid 조회 (다음 번호 자동생성용) -->
+    <!-- userid의 숫자 부분을 정수로 변환하여 정렬 (문자열 정렬 시 자릿수 불일치 방지) -->
     <select id="findLastUseridByAccountType" resultType="string">
         SELECT userid
         FROM schedule_users
         WHERE account_type = #{accountType}
-        ORDER BY userid DESC
+        ORDER BY CAST(SUBSTRING(userid, 2) AS UNSIGNED) DESC
         LIMIT 1
     </select>
 
