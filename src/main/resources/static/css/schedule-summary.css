@@ -1,0 +1,381 @@
+/* ==========================================
+   schedule-summary.css - 출근시간 관리 페이지
+   웹 와이드 레이아웃
+   ========================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    background: linear-gradient(135deg, #f8f5ff 0%, #f0f0ff 100%);
+    min-height: 100vh;
+    color: #2d2d3a;
+}
+
+/* ==========================================
+   레이아웃
+   ========================================== */
+.ss-wrap {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ==========================================
+   헤더
+   ========================================== */
+.ss-header {
+    background: linear-gradient(135deg, #6b46c1 0%, #8b5cf6 100%);
+    color: #fff;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    box-shadow: 0 2px 8px rgba(107, 70, 193, 0.3);
+    flex-wrap: wrap;
+}
+
+.ss-logo {
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+}
+
+.ss-logo span {
+    opacity: 0.8;
+    font-size: 0.85rem;
+    margin-left: 6px;
+}
+
+.ss-header-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.ss-year-select,
+.ss-month-select {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+}
+
+.ss-year-select option,
+.ss-month-select option {
+    background: #6b46c1;
+    color: #fff;
+}
+
+.ss-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.ss-btn {
+    border: none;
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+}
+
+.ss-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.ss-btn-save {
+    background: #fff;
+    color: #6b46c1;
+}
+
+.ss-btn-save:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+.ss-btn-excel {
+    background: #22c55e;
+    color: #fff;
+}
+
+.ss-btn-excel:hover:not(:disabled) {
+    opacity: 0.85;
+}
+
+.ss-btn-back {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+}
+
+.ss-btn-back:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.ss-changes-badge {
+    background: #f97316;
+    color: #fff;
+    border-radius: 10px;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* ==========================================
+   콘텐츠 영역
+   ========================================== */
+.ss-content {
+    flex: 1;
+    padding: 20px 24px;
+    overflow: hidden;
+}
+
+/* ==========================================
+   테이블 래퍼 (수평 스크롤)
+   ========================================== */
+.ss-table-wrap {
+    overflow-x: auto;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(107, 70, 193, 0.1);
+    background: #fff;
+}
+
+/* ==========================================
+   테이블
+   ========================================== */
+.ss-table {
+    border-collapse: collapse;
+    min-width: 100%;
+    table-layout: fixed;
+}
+
+/* 이름 열 너비 */
+.ss-table th.ss-name-col,
+.ss-table td.ss-name-col {
+    width: 80px;
+    min-width: 80px;
+}
+
+/* 날짜 열 너비 */
+.ss-table th.ss-day-col,
+.ss-table td.ss-day-col {
+    width: 52px;
+    min-width: 52px;
+}
+
+/* 합계 열 너비 */
+.ss-table th.ss-total-col,
+.ss-table td.ss-total-col {
+    width: 62px;
+    min-width: 62px;
+}
+
+/* ==========================================
+   헤더 셀
+   ========================================== */
+.ss-table thead th {
+    background: #6b46c1;
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-align: center;
+    padding: 8px 4px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    white-space: nowrap;
+}
+
+.ss-table thead th.ss-name-col {
+    left: 0;
+    z-index: 20;
+    background: #5a3aa8;
+}
+
+.ss-table thead th.ss-total-col {
+    background: #7c3aed;
+}
+
+.ss-table thead th.ss-sun {
+    background: #dc2626;
+}
+
+.ss-table thead th.ss-sat {
+    background: #2563eb;
+}
+
+/* ==========================================
+   데이터 행
+   ========================================== */
+.ss-table tbody tr:nth-child(even) {
+    background: #faf8ff;
+}
+
+.ss-table tbody tr:hover {
+    background: #f0ebff;
+}
+
+/* 이름 셀 */
+.ss-table td.ss-name-col {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    background: #f5f3ff;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    text-align: left;
+    border: 1px solid #e5e7eb;
+    white-space: nowrap;
+    color: #4c1d95;
+}
+
+.ss-table tbody tr:nth-child(even) td.ss-name-col {
+    background: #ede9fe;
+}
+
+.ss-table tbody tr:hover td.ss-name-col {
+    background: #ddd6fe;
+}
+
+/* 날짜 데이터 셀 */
+.ss-table td.ss-day-col {
+    text-align: center;
+    padding: 2px;
+    border: 1px solid #e5e7eb;
+    vertical-align: middle;
+}
+
+/* 합계 셀 */
+.ss-table td.ss-total-col {
+    text-align: center;
+    padding: 4px;
+    border: 1px solid #e5e7eb;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #4c1d95;
+    background: #faf5ff;
+}
+
+/* 변경된 셀 표시 */
+.ss-table td.ss-changed {
+    background: #fef9c3 !important;
+}
+
+/* ==========================================
+   셀 내 입력 필드
+   ========================================== */
+.ss-cell-input {
+    width: 100%;
+    height: 32px;
+    border: none;
+    background: transparent;
+    text-align: center;
+    font-size: 0.82rem;
+    font-family: inherit;
+    color: #1d4ed8;
+    font-weight: 600;
+    outline: none;
+    padding: 0 2px;
+}
+
+.ss-cell-input:focus {
+    background: #eff6ff;
+    border-radius: 4px;
+}
+
+/* '-' 표시 셀 */
+.ss-cell-empty {
+    display: block;
+    width: 100%;
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #d1d5db;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.1s;
+    user-select: none;
+}
+
+.ss-cell-empty:hover {
+    background: #f3f4f6;
+    color: #9ca3af;
+}
+
+/* ==========================================
+   로딩 / 메시지
+   ========================================== */
+.ss-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+    font-size: 1rem;
+    color: #6b46c1;
+}
+
+.ss-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+    font-size: 0.95rem;
+    color: #9ca3af;
+}
+
+/* ==========================================
+   토스트 알림
+   ========================================== */
+.ss-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #1f2937;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    z-index: 1000;
+    animation: toastIn 0.2s ease;
+}
+
+.ss-toast.success {
+    background: #16a34a;
+}
+
+.ss-toast.error {
+    background: #dc2626;
+}
+
+@keyframes toastIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}

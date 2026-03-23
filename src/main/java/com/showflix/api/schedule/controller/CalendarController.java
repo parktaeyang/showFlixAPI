@@ -42,4 +42,17 @@ public class CalendarController {
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE)
                 .body(resource);
     }
+
+    /**
+     * /admin/schedule-summary 경로로 접근 시 출근시간 관리 페이지 반환
+     * SecurityConfig의 /admin/** 패턴에 의해 ADMIN 권한 체크됨
+     */
+    @GetMapping("/admin/schedule-summary")
+    public ResponseEntity<Resource> scheduleSummaryPage() throws IOException {
+        Resource resource = new ClassPathResource("static/admin/schedule-summary.html");
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE)
+                .body(resource);
+    }
 }

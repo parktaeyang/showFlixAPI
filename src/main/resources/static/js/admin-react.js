@@ -107,6 +107,11 @@ function AdminHeader({ userName }) {
         ),
         e('div', { style: { display: 'flex', alignItems: 'center', gap: '10px' } },
             userName && e('span', { style: { color: 'rgba(255,255,255,0.8)', fontSize: '0.82rem' } }, userName),
+            e('button', {
+                className: 'admin-back-btn',
+                onClick: () => window.location.href = '/admin/schedule-summary',
+                style: { marginRight: '4px' },
+            }, '출근시간 관리'),
             e('button', { className: 'admin-back-btn', onClick: handleBack }, '← 달력으로')
         )
     );
