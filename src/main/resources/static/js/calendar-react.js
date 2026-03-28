@@ -372,6 +372,7 @@ function AdminPopup({ date, attendees, roleOptions, onClose, onSaved }) {
             });
             if (!r.ok) throw new Error('저장 실패');
             setMsg('역할/비고 저장 완료');
+            if (onSaved) onSaved();
         } catch (err) {
             setMsg(err.message || '저장 실패');
         } finally {
