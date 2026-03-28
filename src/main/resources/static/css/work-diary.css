@@ -1,0 +1,244 @@
+/* ==========================================
+   work-diary.css - 업무일지 관리 페이지
+   ========================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    background: linear-gradient(135deg, #f8f5ff 0%, #f0f0ff 100%);
+    min-height: 100vh;
+    color: #2d2d3a;
+}
+
+/* ==========================================
+   레이아웃
+   ========================================== */
+.wd-wrap {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ==========================================
+   헤더
+   ========================================== */
+.wd-header {
+    background: linear-gradient(135deg, #6b46c1 0%, #8b5cf6 100%);
+    color: #fff;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    box-shadow: 0 2px 8px rgba(107, 70, 193, 0.3);
+    flex-wrap: wrap;
+}
+
+.wd-logo {
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+}
+
+.wd-logo span {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 400;
+    opacity: 0.85;
+    letter-spacing: 0;
+}
+
+.wd-header-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    flex-wrap: wrap;
+}
+
+.wd-year-select,
+.wd-month-select {
+    padding: 5px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.wd-year-select option,
+.wd-month-select option {
+    color: #333;
+    background: #fff;
+}
+
+.wd-btn {
+    padding: 6px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+}
+
+.wd-btn:hover { opacity: 0.85; }
+.wd-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.wd-btn-add {
+    background: #38a169;
+    color: #fff;
+}
+
+.wd-btn-export {
+    background: #2b6cb0;
+    color: #fff;
+}
+
+.wd-btn-back {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+/* ==========================================
+   테이블 영역
+   ========================================== */
+.wd-body {
+    flex: 1;
+    padding: 16px;
+    overflow-x: auto;
+}
+
+.wd-table {
+    width: 100%;
+    min-width: 1100px;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.wd-table th {
+    background: #f7f5ff;
+    color: #4a3d8f;
+    font-weight: 700;
+    font-size: 0.82rem;
+    padding: 10px 8px;
+    border-bottom: 2px solid #e2ddf5;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.wd-table td {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    font-size: 0.84rem;
+    vertical-align: top;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.wd-table tr:hover {
+    background: #faf8ff;
+}
+
+/* 컬럼 너비 */
+.wd-col-date     { width: 100px; text-align: center; }
+.wd-col-manager  { width: 80px; text-align: center; }
+.wd-col-cash     { min-width: 120px; }
+.wd-col-reserve  { min-width: 200px; }
+.wd-col-event    { min-width: 140px; }
+.wd-col-store    { min-width: 200px; }
+.wd-col-notes    { min-width: 200px; }
+.wd-col-actions  { width: 120px; text-align: center; }
+
+/* ==========================================
+   인라인 입력/수정
+   ========================================== */
+.wd-input {
+    width: 100%;
+    padding: 4px 6px;
+    border: 1px solid #d0cde1;
+    border-radius: 4px;
+    font-size: 0.83rem;
+    font-family: inherit;
+}
+
+.wd-input:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.15);
+}
+
+.wd-textarea {
+    width: 100%;
+    min-height: 60px;
+    padding: 4px 6px;
+    border: 1px solid #d0cde1;
+    border-radius: 4px;
+    font-size: 0.83rem;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.wd-textarea:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.15);
+}
+
+/* ==========================================
+   행 버튼
+   ========================================== */
+.wd-row-btn {
+    padding: 4px 10px;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 2px;
+    transition: opacity 0.15s;
+}
+
+.wd-row-btn:hover { opacity: 0.85; }
+
+.wd-row-btn-edit   { background: #8b5cf6; color: #fff; }
+.wd-row-btn-delete { background: #e53e3e; color: #fff; }
+.wd-row-btn-save   { background: #38a169; color: #fff; }
+.wd-row-btn-cancel { background: #a0aec0; color: #fff; }
+
+/* ==========================================
+   빈 데이터 / 에러
+   ========================================== */
+.wd-empty {
+    text-align: center;
+    padding: 40px 16px;
+    color: #999;
+    font-size: 0.9rem;
+}
+
+/* ==========================================
+   반응형
+   ========================================== */
+@media (max-width: 768px) {
+    .wd-header {
+        padding: 10px 12px;
+        gap: 8px;
+    }
+    .wd-body {
+        padding: 8px;
+    }
+}

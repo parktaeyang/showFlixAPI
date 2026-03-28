@@ -55,4 +55,17 @@ public class CalendarController {
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE)
                 .body(resource);
     }
+
+    /**
+     * /admin/work-diary 경로로 접근 시 업무일지 페이지 반환
+     * SecurityConfig의 /admin/** 패턴에 의해 ADMIN 권한 체크됨
+     */
+    @GetMapping("/admin/work-diary")
+    public ResponseEntity<Resource> workDiaryPage() throws IOException {
+        Resource resource = new ClassPathResource("static/admin/work-diary.html");
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE)
+                .body(resource);
+    }
 }

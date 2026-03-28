@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.showflix.api.schedule.mapper.WorkDiaryMapper">
+
+    <resultMap id="WorkDiaryResult" type="com.showflix.api.schedule.domain.WorkDiary">
+        <result property="id"           column="id"/>
+        <result property="date"         column="date"/>
+        <result property="manager"      column="manager"/>
+        <result property="cashPayment"  column="cash_payment"/>
+        <result property="reservations" column="reservations"/>
+        <result property="event"        column="event"/>
+        <result property="storeRelated" column="store_related"/>
+        <result property="notes"        column="notes"/>
+    </resultMap>
+
+    <!-- 월별 조회 (YYYY-MM%) -->
+    <select id="findByMonth" resultMap="WorkDiaryResult">
+        SELECT id, date, manager, cash_payment, reservations, event, store_related, notes
+        FROM work_diary
+        WHERE date LIKE CONCAT(#{yearMonth}, '%')
+        ORDER BY date ASC, id ASC
+    </select>
+
+    <!-- ID 조회 -->
+    <select id="findById" resultMap="WorkDiaryResult">
+        SELECT id, date, manager, cash_payment, reservations, event, store_related, notes
+        FROM work_diary
+        WHERE id = #{id}
+    </select>
+
+    <!-- 신규 저장 -->
+    <insert id="insert" parameterType="com.showflix.api.schedule.domain.WorkDiary"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO work_diary (date, manager, cash_payment, reservations, event, store_related, notes)
+        VALUES (#{date}, #{manager}, #{cashPayment}, #{reservations}, #{event}, #{storeRelated}, #{notes})
+    </insert>
+
+    <!-- 수정 -->
+    <update id="update" parameterType="com.showflix.api.schedule.domain.WorkDiary">
+        UPDATE work_diary
+        SET date          = #{date},
+            manager       = #{manager},
+            cash_payment  = #{cashPayment},
+            reservations  = #{reservations},
+            event         = #{event},
+            store_related = #{storeRelated},
+            notes         = #{notes}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 삭제 -->
+    <delete id="deleteById">
+        DELETE FROM work_diary WHERE id = #{id}
+    </delete>
+
+</mapper>

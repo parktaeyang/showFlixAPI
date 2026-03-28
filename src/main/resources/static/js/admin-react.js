@@ -112,6 +112,11 @@ function AdminHeader({ userName }) {
                 onClick: () => window.location.href = '/admin/schedule-summary',
                 style: { marginRight: '4px' },
             }, '출근시간 관리'),
+            e('button', {
+                className: 'admin-back-btn',
+                onClick: () => window.location.href = '/admin/work-diary',
+                style: { marginRight: '4px' },
+            }, '업무일지'),
             e('button', { className: 'admin-back-btn', onClick: handleBack }, '← 달력으로')
         )
     );
