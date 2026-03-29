@@ -1,6 +1,6 @@
 스키---
-name: generate-plan
-description: local-notes/요구사항.txt 파일을 읽고 요구사항-plan.md 구현 계획서를 생성합니다. 요구사항.txt 파일이 있을 때 사용하세요.
+name: local-plan
+description: local-notes/요구사항.txt 파일을 읽고 YYYYMMDD-요구사항요약-plan.md 구현 계획서를 생성합니다. 요구사항.txt 파일이 있을 때 사용하세요.
 disable-model-invocation: true
 allowed-tools: Read, Write, Glob, Grep, Agent, Bash
 ---
@@ -16,7 +16,9 @@ allowed-tools: Read, Write, Glob, Grep, Agent, Bash
 2. 프로젝트 코드베이스를 깊이 탐색하여 현황을 파악합니다.
    - 레거시 코드가 관련된 경우 `legacy/` 디렉토리를 반드시 참고합니다.
    - 기존 구현 패턴(아키텍처, 레이어 구조, 네이밍 규칙 등)을 파악합니다.
-3. `local-notes/요구사항-plan.md` 파일을 아래 형식으로 생성합니다.
+3. 파일명을 `local-notes/YYYYMMDD-요구사항요약-plan.md` 형식으로 생성합니다.
+   - YYYYMMDD: 오늘 날짜 (예: 20260329)
+   - 요구사항요약: 요구사항 내용을 핵심 키워드 중심으로 짧게 요약 (예: 역할변경저장오류, 엑셀다운로드개선, 로그인기능추가)
 
 ## plan 파일 작성 형식
 

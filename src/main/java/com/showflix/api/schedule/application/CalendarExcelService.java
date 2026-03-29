@@ -88,6 +88,11 @@ public class CalendarExcelService {
                     }
                 }
 
+                // 유효한 역할 코드 Set
+                Set<String> validRoleNames = Arrays.stream(ScheduleRole.values())
+                        .map(Enum::name)
+                        .collect(Collectors.toSet());
+
                 // 역할별 데이터 행
                 for (ScheduleRole role : ROLE_DISPLAY_ORDER) {
                     Row dataRow = sheet.createRow(rowNum++);
@@ -130,6 +135,51 @@ public class CalendarExcelService {
                             } else {
                                 cell.setCellStyle(styles.unconfirmed);
                             }
+                        }
+                    }
+                }
+
+                // "예비" 행: Enum에 매칭되지 않는 모든 사용자
+                Row reserveRow = sheet.createRow(rowNum++);
+                reserveRow.setHeightInPoints(18);
+
+                Cell reserveLabelCell = reserveRow.createCell(0);
+                reserveLabelCell.setCellValue("예비");
+                reserveLabelCell.setCellStyle(styles.roleLabel);
+
+                for (int d = 0; d < 7; d++) {
+                    Integer day = slots[w * 7 + d];
+                    Cell cell = reserveRow.createCell(d + 1);
+                    if (day == null) {
+                        cell.setCellStyle(styles.padding);
+                        continue;
+                    }
+                    String dateStr = String.format("%04d-%02d-%02d", year, month, day);
+                    List<SelectedDate> dayData = dateMap.getOrDefault(dateStr, Collections.emptyList());
+
+                    List<SelectedDate> noRolePersons = dayData.stream()
+                            .filter(sd -> sd.getRole() == null || sd.getRole().isBlank()
+                                    || !validRoleNames.contains(sd.getRole()))
+                            .toList();
+
+                    if (noRolePersons.isEmpty()) {
+                        cell.setCellStyle(styles.empty);
+                    } else {
+                        boolean hasConfirmed = noRolePersons.stream().anyMatch(sd -> "Y".equalsIgnoreCase(sd.getConfirmed()));
+                        boolean hasUnconfirmed = noRolePersons.stream().anyMatch(sd -> !"Y".equalsIgnoreCase(sd.getConfirmed()));
+
+                        String names = noRolePersons.stream()
+                                .map(SelectedDate::getUserName)
+                                .filter(n -> n != null && !n.isBlank())
+                                .collect(Collectors.joining("\n"));
+                        cell.setCellValue(names);
+
+                        if (hasConfirmed && hasUnconfirmed) {
+                            cell.setCellStyle(styles.mixed);
+                        } else if (hasConfirmed) {
+                            cell.setCellStyle(styles.confirmed);
+                        } else {
+                            cell.setCellStyle(styles.unconfirmed);
                         }
                     }
                 }
