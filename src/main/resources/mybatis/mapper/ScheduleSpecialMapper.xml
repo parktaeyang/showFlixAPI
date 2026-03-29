@@ -15,7 +15,7 @@
             people_count     AS peopleCount,
             contact_info     AS contactInfo,
             notes
-        FROM schedule_special
+        FROM sf_special
         ORDER BY reservation_date DESC, reservation_time ASC
     </select>
 
@@ -31,19 +31,19 @@
             people_count     AS peopleCount,
             contact_info     AS contactInfo,
             notes
-        FROM schedule_special
+        FROM sf_special
         WHERE id = #{id}
     </select>
 
     <!-- 신규 삽입 -->
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO schedule_special (reservation_date, reservation_time, customer_name, people_count, contact_info, notes, created_at, updated_at)
+        INSERT INTO sf_special (reservation_date, reservation_time, customer_name, people_count, contact_info, notes, created_at, updated_at)
         VALUES (#{reservationDate}, #{reservationTime}, #{customerName}, #{peopleCount}, #{contactInfo}, #{notes}, NOW(), NOW())
     </insert>
 
     <!-- 수정 -->
     <update id="update">
-        UPDATE schedule_special
+        UPDATE sf_special
         SET reservation_date = #{reservationDate},
             reservation_time = #{reservationTime},
             customer_name    = #{customerName},
@@ -56,7 +56,7 @@
 
     <!-- 삭제 -->
     <delete id="deleteById">
-        DELETE FROM schedule_special
+        DELETE FROM sf_special
         WHERE id = #{id}
     </delete>
 

@@ -16,13 +16,13 @@
     <!-- 날짜별 전체 조회 -->
     <select id="findByDate" resultMap="VoucherTipResult">
         SELECT id, date, user_id, user_name, voucher, tip
-        FROM actor_voucher_tip
+        FROM sf_voucher_tip
         WHERE date = #{date}
     </select>
 
     <!-- 신규 삽입 또는 기존 row 업데이트 (upsert) -->
     <insert id="upsert">
-        INSERT INTO actor_voucher_tip (date, user_id, user_name, voucher, tip)
+        INSERT INTO sf_voucher_tip (date, user_id, user_name, voucher, tip)
         VALUES (#{date}, #{userId}, #{userName}, #{voucher}, #{tip})
         ON DUPLICATE KEY UPDATE
             user_name  = VALUES(user_name),

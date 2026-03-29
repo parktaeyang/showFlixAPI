@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.showflix.api.auth.mapper.UserMapper">
 
-    <!-- schedule_users 테이블에서 userid로 조회 -->
+    <!-- sf_users 테이블에서 userid로 조회 -->
     <select id="findByUserid"
             parameterType="string"
             resultType="com.showflix.api.auth.domain.User">
@@ -13,7 +13,7 @@
             username,
             password,
             is_admin AS admin
-        FROM schedule_users
+        FROM sf_users
         WHERE userid = #{userid}
     </select>
 
@@ -25,13 +25,13 @@
             username,
             password,
             is_admin AS admin
-        FROM schedule_users
+        FROM sf_users
         WHERE is_admin = false
         ORDER BY username ASC
     </select>
 
     <!-- 전체 사용자 목록 조회 (관리자 페이지 계정관리용) -->
-    <!-- 각 사용자의 가장 최근 selected_date.role을 LEFT JOIN으로 함께 조회 -->
+    <!-- 각 사용자의 가장 최근 sf_selected_date.role을 LEFT JOIN으로 함께 조회 -->
     <select id="findAll"
             resultType="com.showflix.api.auth.domain.User">
         SELECT
@@ -42,13 +42,13 @@
             u.account_type   AS accountType,
             u.role           AS role,
             r.role           AS recentRole
-        FROM schedule_users u
+        FROM sf_users u
         LEFT JOIN (
             SELECT user_id, role
-            FROM selected_date sd1
+            FROM sf_selected_date sd1
             WHERE date = (
                 SELECT MAX(sd2.date)
-                FROM selected_date sd2
+                FROM sf_selected_date sd2
                 WHERE sd2.user_id = sd1.user_id
                   AND sd2.role IS NOT NULL
                   AND sd2.role != ''
@@ -69,13 +69,13 @@
             u.account_type   AS accountType,
             u.role           AS role,
             r.role           AS recentRole
-        FROM schedule_users u
+        FROM sf_users u
         LEFT JOIN (
             SELECT user_id, role
-            FROM selected_date sd1
+            FROM sf_selected_date sd1
             WHERE date = (
                 SELECT MAX(sd2.date)
-                FROM selected_date sd2
+                FROM sf_selected_date sd2
                 WHERE sd2.user_id = sd1.user_id
                   AND sd2.role IS NOT NULL
                   AND sd2.role != ''
@@ -94,7 +94,7 @@
     <!-- userid의 숫자 부분을 정수로 변환하여 정렬 (문자열 정렬 시 자릿수 불일치 방지) -->
     <select id="findLastUseridByAccountType" resultType="string">
         SELECT userid
-        FROM schedule_users
+        FROM sf_users
         WHERE account_type = #{accountType}
         ORDER BY CAST(SUBSTRING(userid, 2) AS UNSIGNED) DESC
         LIMIT 1
@@ -103,14 +103,14 @@
     <!-- 신규 계정 추가 -->
     <insert id="save"
             parameterType="com.showflix.api.auth.domain.User">
-        INSERT INTO schedule_users (userid, username, password, is_admin, account_type, role, created_at)
+        INSERT INTO sf_users (userid, username, password, is_admin, account_type, role, created_at)
         VALUES (#{userid}, #{username}, #{password}, #{admin}, #{accountType}, #{role}, NOW())
     </insert>
 
     <!-- 계정 정보 수정 (username, is_admin, account_type, role) -->
     <update id="update"
             parameterType="com.showflix.api.auth.domain.User">
-        UPDATE schedule_users
+        UPDATE sf_users
         SET username     = #{username},
             is_admin     = #{admin},
             account_type = #{accountType},
@@ -120,14 +120,14 @@
 
     <!-- 비밀번호 변경 -->
     <update id="updatePassword">
-        UPDATE schedule_users
+        UPDATE sf_users
         SET password = #{password}
         WHERE userid = #{userid}
     </update>
 
     <!-- 계정 삭제 -->
     <delete id="delete">
-        DELETE FROM schedule_users
+        DELETE FROM sf_users
         WHERE userid = #{userid}
     </delete>
 

@@ -18,7 +18,7 @@
     <!-- 월별 조회 (YYYY-MM%) -->
     <select id="findByMonth" resultMap="WorkDiaryResult">
         SELECT id, date, manager, cash_payment, reservations, event, store_related, notes
-        FROM work_diary
+        FROM sf_work_diary
         WHERE date LIKE CONCAT(#{yearMonth}, '%')
         ORDER BY date ASC, id ASC
     </select>
@@ -26,20 +26,20 @@
     <!-- ID 조회 -->
     <select id="findById" resultMap="WorkDiaryResult">
         SELECT id, date, manager, cash_payment, reservations, event, store_related, notes
-        FROM work_diary
+        FROM sf_work_diary
         WHERE id = #{id}
     </select>
 
     <!-- 신규 저장 -->
     <insert id="insert" parameterType="com.showflix.api.schedule.domain.WorkDiary"
             useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO work_diary (date, manager, cash_payment, reservations, event, store_related, notes)
+        INSERT INTO sf_work_diary (date, manager, cash_payment, reservations, event, store_related, notes)
         VALUES (#{date}, #{manager}, #{cashPayment}, #{reservations}, #{event}, #{storeRelated}, #{notes})
     </insert>
 
     <!-- 수정 -->
     <update id="update" parameterType="com.showflix.api.schedule.domain.WorkDiary">
-        UPDATE work_diary
+        UPDATE sf_work_diary
         SET date          = #{date},
             manager       = #{manager},
             cash_payment  = #{cashPayment},
@@ -52,7 +52,7 @@
 
     <!-- 삭제 -->
     <delete id="deleteById">
-        DELETE FROM work_diary WHERE id = #{id}
+        DELETE FROM sf_work_diary WHERE id = #{id}
     </delete>
 
 </mapper>

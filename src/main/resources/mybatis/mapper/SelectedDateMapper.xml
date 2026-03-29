@@ -25,14 +25,14 @@
             sd.confirmed,
             sd.remarks,
             u.account_type
-        FROM selected_date sd
-        LEFT JOIN schedule_users u ON sd.user_id = u.userid
+        FROM sf_selected_date sd
+        LEFT JOIN sf_users u ON sd.user_id = u.userid
         WHERE sd.date BETWEEN #{start} AND #{end}
         ORDER BY sd.date, sd.user_id
     </select>
 
     <insert id="insert">
-        INSERT INTO selected_date (date, user_id, user_name, open_hope, role, confirmed, remarks)
+        INSERT INTO sf_selected_date (date, user_id, user_name, open_hope, role, confirmed, remarks)
         VALUES (#{date}, #{userId}, #{userName}, #{openHope}, #{role}, COALESCE(#{confirmed}, 'N'), #{remarks})
         ON DUPLICATE KEY UPDATE
             user_name = VALUES(user_name),
@@ -42,18 +42,18 @@
     </insert>
 
     <update id="updateRoleByDateAndUserId">
-        UPDATE selected_date
+        UPDATE sf_selected_date
         SET role = #{role}, remarks = COALESCE(#{remarks}, remarks)
         WHERE date = #{date} AND user_id = #{userId}
     </update>
 
     <delete id="deleteByDateAndUserId">
-        DELETE FROM selected_date
+        DELETE FROM sf_selected_date
         WHERE date = #{date} AND user_id = #{userId}
     </delete>
 
     <update id="updateConfirmationByDate">
-        UPDATE selected_date
+        UPDATE sf_selected_date
         SET confirmed = #{confirmed}
         WHERE date = #{date}
     </update>

@@ -13,12 +13,12 @@
 
     <select id="findById" resultMap="AdminNoteResult">
         SELECT id, content, updated_by, updated_at
-        FROM admin_note
+        FROM sf_admin_note
         WHERE id = #{id}
     </select>
 
     <insert id="upsert">
-        INSERT INTO admin_note (id, content, updated_by, updated_at)
+        INSERT INTO sf_admin_note (id, content, updated_by, updated_at)
         VALUES (#{id}, #{content}, #{updatedBy}, NOW())
         ON DUPLICATE KEY UPDATE
             content = VALUES(content),

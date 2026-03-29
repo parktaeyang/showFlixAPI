@@ -15,14 +15,14 @@
     <!-- 월별 전체 조회 (YYYY-MM-01 ~ YYYY-MM-말일) -->
     <select id="findByMonth" resultMap="ScheduleSummaryResult">
         SELECT id, user_id, date, hours, remarks
-        FROM schedule_summary
+        FROM sf_summary
         WHERE date BETWEEN #{start} AND #{end}
         ORDER BY user_id, date
     </select>
 
     <!-- upsert: 동일 (user_id, date)이면 hours, remarks UPDATE -->
     <insert id="upsert" parameterType="com.showflix.api.schedule.domain.ScheduleSummary">
-        INSERT INTO schedule_summary (user_id, date, hours, remarks)
+        INSERT INTO sf_summary (user_id, date, hours, remarks)
         VALUES (#{userId}, #{date}, #{hours}, #{remarks})
         ON DUPLICATE KEY UPDATE
             hours   = VALUES(hours),

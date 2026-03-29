@@ -16,7 +16,7 @@
     <!-- 월별 전체 조회 -->
     <select id="findByYearAndMonth" resultMap="ScheduleResult">
         SELECT id, date, username, hours, memo, remarks
-        FROM schedule
+        FROM sf_schedule
         WHERE YEAR(date) = #{year}
           AND MONTH(date) = #{month}
         ORDER BY date ASC, username ASC
@@ -25,7 +25,7 @@
     <!-- date + username 기준 단건 조회 -->
     <select id="findByDateAndUsername" resultMap="ScheduleResult">
         SELECT id, date, username, hours, memo, remarks
-        FROM schedule
+        FROM sf_schedule
         WHERE date = #{date}
           AND username = #{username}
         LIMIT 1
@@ -33,13 +33,13 @@
 
     <!-- 신규 삽입 -->
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO schedule (date, username, hours, memo, remarks)
+        INSERT INTO sf_schedule (date, username, hours, memo, remarks)
         VALUES (#{date}, #{username}, #{hours}, #{memo}, #{remarks})
     </insert>
 
     <!-- id 기준 수정 -->
     <update id="update">
-        UPDATE schedule
+        UPDATE sf_schedule
         SET hours   = #{hours},
             remarks = #{remarks}
         WHERE id = #{id}
@@ -47,7 +47,7 @@
 
     <!-- date + username 기준 삭제 -->
     <delete id="deleteByDateAndUsername">
-        DELETE FROM schedule
+        DELETE FROM sf_schedule
         WHERE date = #{date}
           AND username = #{username}
     </delete>
@@ -57,7 +57,7 @@
         레거시에서는 루프로 개별 UPDATE했으나 단일 쿼리로 최적화
     -->
     <update id="updateRemarksByDate">
-        UPDATE schedule
+        UPDATE sf_schedule
         SET remarks = #{remarks}
         WHERE date = #{date}
     </update>
