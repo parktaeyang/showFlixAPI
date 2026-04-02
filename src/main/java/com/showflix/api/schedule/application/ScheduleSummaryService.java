@@ -32,9 +32,11 @@ public class ScheduleSummaryService {
             int year,
             int month,
             int daysInMonth,
-            List<UserInfo> users,
+            List<UserInfo> staffUsers,              // STAFF 그룹
+            List<UserInfo> actorUsers,              // ACTOR 그룹
             Map<String, Map<String, String>> data,  // userId -> (date -> hours)
-            Map<String, String> dateRemarks          // date -> remarks (날짜별 특이사항)
+            Map<String, String> staffRemarks,       // date -> 스탭 특이사항
+            Map<String, String> actorRemarks        // date -> 배우 특이사항
     ) {}
 
     public record UserInfo(String userId, String userName, String accountType) {}
@@ -49,24 +51,45 @@ public class ScheduleSummaryService {
         LocalDate start = LocalDate.of(year, month, 1);
         LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
 
-        // ACTOR, STAFF 유형 직원만 필터링, username 기준 정렬
-        List<UserInfo> users = userRepository.findAll().stream()
+        // ACTOR, STAFF 유형 직원만 필터링, 그룹별 분리 후 username 정렬
+        List<UserInfo> allUsers = userRepository.findAll().stream()
                 .filter(u -> "ACTOR".equals(u.getAccountType()) || "STAFF".equals(u.getAccountType()))
                 .sorted(Comparator.comparing(User::getUsername))
                 .map(u -> new UserInfo(u.getUserid(), u.getUsername(), u.getAccountType()))
                 .collect(Collectors.toList());
 
+        List<UserInfo> staffUsers = allUsers.stream()
+                .filter(u -> "STAFF".equals(u.accountType()))
+                .collect(Collectors.toList());
+        List<UserInfo> actorUsers = allUsers.stream()
+                .filter(u -> "ACTOR".equals(u.accountType()))
+                .collect(Collectors.toList());
+
         // 해당 월 schedule_summary 데이터 조회
         List<ScheduleSummary> summaries = repository.findByMonth(start.toString(), end.toString());
 
-        // userId -> (date -> hours) 맵 구성 + 날짜별 특이사항 추출
+        // userId -> (date -> hours) 맵 구성 + 그룹별 특이사항 추출
         Map<String, Map<String, String>> data = new LinkedHashMap<>();
-        Map<String, String> dateRemarks = new LinkedHashMap<>();
+        Map<String, String> staffRemarks = new LinkedHashMap<>();
+        Map<String, String> actorRemarks = new LinkedHashMap<>();
         for (ScheduleSummary s : summaries) {
-            // __remarks__ 사용자: 날짜별 특이사항
+            // 그룹별 특이사항
+            if ("__remarks_STAFF__".equals(s.getUserId())) {
+                if (s.getRemarks() != null && !s.getRemarks().isBlank()) {
+                    staffRemarks.put(s.getDate(), s.getRemarks());
+                }
+                continue;
+            }
+            if ("__remarks_ACTOR__".equals(s.getUserId())) {
+                if (s.getRemarks() != null && !s.getRemarks().isBlank()) {
+                    actorRemarks.put(s.getDate(), s.getRemarks());
+                }
+                continue;
+            }
+            // 기존 __remarks__ 데이터 호환: 스탭 특이사항으로 폴백
             if ("__remarks__".equals(s.getUserId())) {
                 if (s.getRemarks() != null && !s.getRemarks().isBlank()) {
-                    dateRemarks.put(s.getDate(), s.getRemarks());
+                    staffRemarks.putIfAbsent(s.getDate(), s.getRemarks());
                 }
                 continue;
             }
@@ -77,7 +100,7 @@ public class ScheduleSummaryService {
             }
         }
 
-        return new MonthResult(year, month, end.getDayOfMonth(), users, data, dateRemarks);
+        return new MonthResult(year, month, end.getDayOfMonth(), staffUsers, actorUsers, data, staffRemarks, actorRemarks);
     }
 
     /**

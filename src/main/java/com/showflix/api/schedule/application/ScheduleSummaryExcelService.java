@@ -25,12 +25,21 @@ public class ScheduleSummaryExcelService {
      */
     public byte[] generate(int year, int month, ScheduleSummaryService.MonthResult result) {
         int daysInMonth = result.daysInMonth();
-        List<ScheduleSummaryService.UserInfo> users = result.users();
+        List<ScheduleSummaryService.UserInfo> staffUsers = result.staffUsers();
+        List<ScheduleSummaryService.UserInfo> actorUsers = result.actorUsers();
         Map<String, Map<String, String>> data = result.data();
-        Map<String, String> dateRemarks = result.dateRemarks();
+        Map<String, String> staffRemarks = result.staffRemarks();
+        Map<String, String> actorRemarks = result.actorRemarks();
 
-        int totalCol = users.size() + 1;
-        int remarksCol = users.size() + 2;
+        // 컬럼 배치: 날짜 | 스탭들 | 특이사항(스탭) | 배우들 | 특이사항(배우) | 합계
+        int staffRemarksCol = staffUsers.size() + 1;
+        int actorStartCol = staffRemarksCol + 1;
+        int actorRemarksCol = actorStartCol + actorUsers.size();
+        int totalCol = actorRemarksCol + 1;
+        int lastCol = totalCol;
+
+        double[] staffTotals = new double[staffUsers.size()];
+        double[] actorTotals = new double[actorUsers.size()];
 
         try (XSSFWorkbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet(year + "년 " + month + "월 출근시간");
@@ -46,9 +55,9 @@ public class ScheduleSummaryExcelService {
             Cell titleCell = titleRow.createCell(0);
             titleCell.setCellValue(year + "년 " + month + "월 출근시간 현황");
             titleCell.setCellStyle(styles.title);
-            sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, remarksCol));
+            sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, lastCol));
 
-            // ── 헤더 행 (날짜 | 출근자1 | 출근자2 | ... | 합계 | 특이사항) ──
+            // ── 헤더 행 ──────────────────────────────────────────────
             Row headerRow = sheet.createRow(rowNum++);
             headerRow.setHeightInPoints(20);
 
@@ -56,23 +65,32 @@ public class ScheduleSummaryExcelService {
             dateHeader.setCellValue("날짜");
             dateHeader.setCellStyle(styles.colHeader);
 
-            for (int u = 0; u < users.size(); u++) {
+            // 스탭 헤더
+            for (int u = 0; u < staffUsers.size(); u++) {
                 Cell cell = headerRow.createCell(u + 1);
-                cell.setCellValue(users.get(u).userName());
+                cell.setCellValue(staffUsers.get(u).userName());
                 cell.setCellStyle(styles.colHeader);
             }
+            Cell staffRemarksHeader = headerRow.createCell(staffRemarksCol);
+            staffRemarksHeader.setCellValue("특이사항(스탭)");
+            staffRemarksHeader.setCellStyle(styles.totalHeader);
+
+            // 배우 헤더
+            for (int u = 0; u < actorUsers.size(); u++) {
+                Cell cell = headerRow.createCell(actorStartCol + u);
+                cell.setCellValue(actorUsers.get(u).userName());
+                cell.setCellStyle(styles.colHeader);
+            }
+            Cell actorRemarksHeader = headerRow.createCell(actorRemarksCol);
+            actorRemarksHeader.setCellValue("특이사항(배우)");
+            actorRemarksHeader.setCellStyle(styles.totalHeader);
 
             Cell totalHeader = headerRow.createCell(totalCol);
             totalHeader.setCellValue("합계");
             totalHeader.setCellStyle(styles.totalHeader);
 
-            Cell remarksHeader = headerRow.createCell(remarksCol);
-            remarksHeader.setCellValue("특이사항");
-            remarksHeader.setCellStyle(styles.totalHeader);
-
             // ── 데이터 행 (날짜별) ────────────────────────────────────
             LocalDate firstDay = LocalDate.of(year, month, 1);
-            double[] userTotals = new double[users.size()];
             double grandTotal = 0;
 
             for (int d = 1; d <= daysInMonth; d++) {
@@ -97,8 +115,10 @@ public class ScheduleSummaryExcelService {
                 }
 
                 double dayTotal = 0;
-                for (int u = 0; u < users.size(); u++) {
-                    Map<String, String> userMap = data.getOrDefault(users.get(u).userId(), Map.of());
+
+                // 스탭 데이터
+                for (int u = 0; u < staffUsers.size(); u++) {
+                    Map<String, String> userMap = data.getOrDefault(staffUsers.get(u).userId(), Map.of());
                     String hoursStr = userMap.get(dateStr);
                     Cell cell = dataRow.createCell(u + 1);
                     if (hoursStr != null && !hoursStr.isBlank()) {
@@ -108,7 +128,7 @@ public class ScheduleSummaryExcelService {
                                 cell.setCellValue(hours);
                                 cell.setCellStyle(styles.dataCell);
                                 dayTotal += hours;
-                                userTotals[u] += hours;
+                                staffTotals[u] += hours;
                                 continue;
                             }
                         } catch (NumberFormatException ignored) {}
@@ -117,18 +137,43 @@ public class ScheduleSummaryExcelService {
                     cell.setCellStyle(styles.emptyCell);
                 }
 
+                // 스탭 특이사항
+                Cell staffRemarksCell = dataRow.createCell(staffRemarksCol);
+                staffRemarksCell.setCellValue(staffRemarks.getOrDefault(dateStr, ""));
+                staffRemarksCell.setCellStyle(styles.remarksCell);
+
+                // 배우 데이터
+                for (int u = 0; u < actorUsers.size(); u++) {
+                    Map<String, String> userMap = data.getOrDefault(actorUsers.get(u).userId(), Map.of());
+                    String hoursStr = userMap.get(dateStr);
+                    Cell cell = dataRow.createCell(actorStartCol + u);
+                    if (hoursStr != null && !hoursStr.isBlank()) {
+                        try {
+                            double hours = Double.parseDouble(hoursStr);
+                            if (hours > 0) {
+                                cell.setCellValue(hours);
+                                cell.setCellStyle(styles.dataCell);
+                                dayTotal += hours;
+                                actorTotals[u] += hours;
+                                continue;
+                            }
+                        } catch (NumberFormatException ignored) {}
+                    }
+                    cell.setCellValue("-");
+                    cell.setCellStyle(styles.emptyCell);
+                }
+
+                // 배우 특이사항
+                Cell actorRemarksCell = dataRow.createCell(actorRemarksCol);
+                actorRemarksCell.setCellValue(actorRemarks.getOrDefault(dateStr, ""));
+                actorRemarksCell.setCellStyle(styles.remarksCell);
+
                 grandTotal += dayTotal;
 
                 // 합계 셀
                 Cell totalCell = dataRow.createCell(totalCol);
                 totalCell.setCellValue(dayTotal > 0 ? dayTotal : 0);
                 totalCell.setCellStyle(styles.totalCell);
-
-                // 특이사항 셀 (저장된 값 표시)
-                Cell remarksCell = dataRow.createCell(remarksCol);
-                String remarksValue = dateRemarks.getOrDefault(dateStr, "");
-                remarksCell.setCellValue(remarksValue);
-                remarksCell.setCellStyle(styles.remarksCell);
             }
 
             // ── 합계 행 ─────────────────────────────────────────────
@@ -139,28 +184,41 @@ public class ScheduleSummaryExcelService {
             totalLabelCell.setCellValue("합계");
             totalLabelCell.setCellStyle(styles.totalHeader);
 
-            for (int u = 0; u < users.size(); u++) {
+            for (int u = 0; u < staffUsers.size(); u++) {
                 Cell cell = totalRow.createCell(u + 1);
-                cell.setCellValue(userTotals[u] > 0 ? userTotals[u] : 0);
+                cell.setCellValue(staffTotals[u] > 0 ? staffTotals[u] : 0);
                 cell.setCellStyle(styles.totalCell);
             }
+            // 스탭 특이사항 빈 칸
+            Cell totalStaffRemarksCell = totalRow.createCell(staffRemarksCol);
+            totalStaffRemarksCell.setCellValue("");
+            totalStaffRemarksCell.setCellStyle(styles.remarksCell);
+
+            for (int u = 0; u < actorUsers.size(); u++) {
+                Cell cell = totalRow.createCell(actorStartCol + u);
+                cell.setCellValue(actorTotals[u] > 0 ? actorTotals[u] : 0);
+                cell.setCellStyle(styles.totalCell);
+            }
+            // 배우 특이사항 빈 칸
+            Cell totalActorRemarksCell = totalRow.createCell(actorRemarksCol);
+            totalActorRemarksCell.setCellValue("");
+            totalActorRemarksCell.setCellStyle(styles.remarksCell);
 
             Cell grandTotalCell = totalRow.createCell(totalCol);
             grandTotalCell.setCellValue(grandTotal);
             grandTotalCell.setCellStyle(styles.totalCell);
 
-            // 특이사항 열 빈 칸
-            Cell totalRemarksCell = totalRow.createCell(remarksCol);
-            totalRemarksCell.setCellValue("");
-            totalRemarksCell.setCellStyle(styles.remarksCell);
-
             // ── 열 너비 설정 ─────────────────────────────────────────
             sheet.setColumnWidth(0, 3200); // 날짜
-            for (int c = 1; c <= users.size(); c++) {
-                sheet.setColumnWidth(c, 2400); // 출근자
+            for (int c = 1; c <= staffUsers.size(); c++) {
+                sheet.setColumnWidth(c, 2400);
             }
-            sheet.setColumnWidth(totalCol, 2400);    // 합계
-            sheet.setColumnWidth(remarksCol, 6000);  // 특이사항
+            sheet.setColumnWidth(staffRemarksCol, 6000);  // 스탭 특이사항
+            for (int c = 0; c < actorUsers.size(); c++) {
+                sheet.setColumnWidth(actorStartCol + c, 2400);
+            }
+            sheet.setColumnWidth(actorRemarksCol, 6000);  // 배우 특이사항
+            sheet.setColumnWidth(totalCol, 2400);          // 합계
 
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             workbook.write(bos);

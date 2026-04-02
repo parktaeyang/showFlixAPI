@@ -328,6 +328,17 @@ body {
     border-radius: 4px;
 }
 
+/* 스탭 헤더 이름 노란색 */
+.ss-table thead th.ss-staff-col {
+    color: #fde047;
+}
+
+/* 그룹 구분선 (스탭/배우 경계) */
+.ss-table th.ss-group-border-left,
+.ss-table td.ss-group-border-left {
+    border-left: 3px solid #8b5cf6;
+}
+
 /* 변경된 셀 표시 */
 .ss-table td.ss-changed {
     background: #fef9c3 !important;

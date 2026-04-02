@@ -5,7 +5,7 @@
  * 구조:
  *  ScheduleSummaryPage
  *  ├── SsHeader  (년/월 선택, 저장, 엑셀, 뒤로가기)
- *  └── SsTable   (출근시간 그리드)
+ *  └── SsTable   (출근시간 그리드 - 스탭/배우 그룹별)
  */
 
 const e = React.createElement;
@@ -211,26 +211,36 @@ function SsCell({ userId, dateKey, hoursValue, isChanged, onCellChange }) {
 // ────────────────────────────────────────────────────────────────────
 // SsTable
 // ────────────────────────────────────────────────────────────────────
-function SsTable({ year, month, users, gridData, remarksData, remarksChanges, changes, onCellChange, onRemarksChange }) {
+function SsTable({ year, month, staffUsers, actorUsers, gridData,
+    staffRemarksData, actorRemarksData,
+    staffRemarksChanges, actorRemarksChanges,
+    changes, onCellChange, onStaffRemarksChange, onActorRemarksChange }) {
+
     const daysInMonth = getDaysInMonth(year, month);
     const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
-    if (!users || users.length === 0) {
+    if ((!staffUsers || staffUsers.length === 0) && (!actorUsers || actorUsers.length === 0)) {
         return e('div', { className: 'ss-empty' }, '직원 데이터가 없습니다.');
     }
 
     return e('div', { className: 'ss-table-wrap' },
         e('table', { className: 'ss-table' },
 
-            // ── 헤더 (날짜 | 출근자1 | 출근자2 | ... | 합계 | 특이사항) ──
+            // ── 헤더 ──
             e('thead', null,
                 e('tr', null,
                     e('th', { className: 'ss-date-col' }, '날짜'),
-                    ...users.map(user =>
-                        e('th', { key: user.userId, className: 'ss-user-col' }, user.userName)
+                    // 스탭 헤더
+                    ...staffUsers.map(user =>
+                        e('th', { key: user.userId, className: 'ss-user-col ss-staff-col' }, user.userName)
                     ),
-                    e('th', { className: 'ss-total-col' }, '합계'),
-                    e('th', { className: 'ss-remarks-col' }, '특이사항')
+                    e('th', { className: 'ss-remarks-col ss-group-border-left' }, '특이사항(스탭)'),
+                    // 배우 헤더
+                    ...actorUsers.map(user =>
+                        e('th', { key: user.userId, className: 'ss-user-col ss-actor-col' }, user.userName)
+                    ),
+                    e('th', { className: 'ss-remarks-col ss-group-border-left' }, '특이사항(배우)'),
+                    e('th', { className: 'ss-total-col ss-group-border-left' }, '합계')
                 )
             ),
 
@@ -242,7 +252,8 @@ function SsTable({ year, month, users, gridData, remarksData, remarksChanges, ch
                     const label = `${d}일(${DAY_OF_WEEK_KR[dow]})`;
                     let dayTotal = 0;
 
-                    const userCells = users.map(user => {
+                    // 스탭 셀
+                    const staffCells = staffUsers.map(user => {
                         const userMap = (gridData && gridData[user.userId]) || {};
                         const hoursVal = userMap[dk] || '';
                         const changed = changes.has(`${user.userId}|${dk}`);
@@ -264,29 +275,64 @@ function SsTable({ year, month, users, gridData, remarksData, remarksChanges, ch
                         );
                     });
 
+                    // 배우 셀
+                    const actorCells = actorUsers.map(user => {
+                        const userMap = (gridData && gridData[user.userId]) || {};
+                        const hoursVal = userMap[dk] || '';
+                        const changed = changes.has(`${user.userId}|${dk}`);
+                        const hrs = parseHours(hoursVal);
+                        if (hrs > 0) dayTotal += hrs;
+
+                        let tdCls = 'ss-user-col ss-actor-col';
+                        if (changed) tdCls += ' ss-changed';
+
+                        return e('td', { key: user.userId, className: tdCls },
+                            e(SsCell, {
+                                key: `${user.userId}|${dk}`,
+                                userId: user.userId,
+                                dateKey: dk,
+                                hoursValue: hoursVal,
+                                isChanged: changed,
+                                onCellChange,
+                            })
+                        );
+                    });
+
                     let trCls = '';
                     if (dow === 0) trCls = 'ss-sun-row';
                     else if (dow === 6) trCls = 'ss-sat-row';
 
-                    const remarksText = (remarksData && remarksData[dk]) || '';
-                    const remarksChanged = remarksChanges && remarksChanges.has(dk);
+                    const staffRemarksText = (staffRemarksData && staffRemarksData[dk]) || '';
+                    const actorRemarksText = (actorRemarksData && actorRemarksData[dk]) || '';
+                    const staffRemarksChanged = staffRemarksChanges && staffRemarksChanges.has(dk);
+                    const actorRemarksChanged = actorRemarksChanges && actorRemarksChanges.has(dk);
 
                     return e('tr', { key: dk, className: trCls },
                         e('td', { className: 'ss-date-col' }, label),
-                        ...userCells,
-                        e('td', { className: 'ss-total-col' },
-                            dayTotal > 0
-                                ? (dayTotal % 1 === 0 ? dayTotal : dayTotal.toFixed(1))
-                                : '-'
-                        ),
-                        e('td', { className: 'ss-remarks-col' + (remarksChanged ? ' ss-changed' : '') },
+                        ...staffCells,
+                        e('td', { className: 'ss-remarks-col ss-group-border-left' + (staffRemarksChanged ? ' ss-changed' : '') },
                             e('input', {
                                 className: 'ss-remarks-input',
                                 type: 'text',
-                                value: remarksText,
+                                value: staffRemarksText,
                                 placeholder: '',
-                                onChange: ev => onRemarksChange(dk, ev.target.value),
+                                onChange: ev => onStaffRemarksChange(dk, ev.target.value),
                             })
+                        ),
+                        ...actorCells,
+                        e('td', { className: 'ss-remarks-col ss-group-border-left' + (actorRemarksChanged ? ' ss-changed' : '') },
+                            e('input', {
+                                className: 'ss-remarks-input',
+                                type: 'text',
+                                value: actorRemarksText,
+                                placeholder: '',
+                                onChange: ev => onActorRemarksChange(dk, ev.target.value),
+                            })
+                        ),
+                        e('td', { className: 'ss-total-col ss-group-border-left' },
+                            dayTotal > 0
+                                ? (dayTotal % 1 === 0 ? dayTotal : dayTotal.toFixed(1))
+                                : '-'
                         )
                     );
                 }),
@@ -294,7 +340,7 @@ function SsTable({ year, month, users, gridData, remarksData, remarksChanges, ch
                 // ── 합계 행 ──
                 (() => {
                     let grandTotal = 0;
-                    const userTotalCells = users.map(user => {
+                    const staffTotalCells = staffUsers.map(user => {
                         const userMap = (gridData && gridData[user.userId]) || {};
                         let userTotal = 0;
                         days.forEach(d => {
@@ -308,15 +354,31 @@ function SsTable({ year, month, users, gridData, remarksData, remarksChanges, ch
                                 : '-'
                         );
                     });
+                    const actorTotalCells = actorUsers.map(user => {
+                        const userMap = (gridData && gridData[user.userId]) || {};
+                        let userTotal = 0;
+                        days.forEach(d => {
+                            const dk = dateStr(year, month, d);
+                            userTotal += parseHours(userMap[dk] || '');
+                        });
+                        grandTotal += userTotal;
+                        return e('td', { key: user.userId, className: 'ss-total-col ss-actor-col' },
+                            userTotal > 0
+                                ? (userTotal % 1 === 0 ? userTotal : userTotal.toFixed(1))
+                                : '-'
+                        );
+                    });
                     return e('tr', { key: 'total', className: 'ss-total-row' },
                         e('td', { className: 'ss-date-col ss-total-label' }, '합계'),
-                        ...userTotalCells,
-                        e('td', { className: 'ss-total-col ss-grand-total' },
+                        ...staffTotalCells,
+                        e('td', { className: 'ss-remarks-col ss-group-border-left' }, ''),
+                        ...actorTotalCells,
+                        e('td', { className: 'ss-remarks-col ss-group-border-left' }, ''),
+                        e('td', { className: 'ss-total-col ss-grand-total ss-group-border-left' },
                             grandTotal > 0
                                 ? (grandTotal % 1 === 0 ? grandTotal : grandTotal.toFixed(1))
                                 : '-'
-                        ),
-                        e('td', { className: 'ss-remarks-col' }, '')
+                        )
                     );
                 })()
             )
@@ -340,11 +402,14 @@ function ScheduleSummaryPage() {
     const [year, setYear] = React.useState(now.getFullYear());
     const [month, setMonth] = React.useState(now.getMonth() + 1);
 
-    const [users, setUsers] = React.useState([]);
-    const [gridData, setGridData] = React.useState({});          // { userId: { dateStr: hoursStr } }
-    const [remarksData, setRemarksData] = React.useState({});    // { dateStr: remarks }
-    const [changes, setChanges] = React.useState(new Set());     // "userId|dateStr"
-    const [remarksChanges, setRemarksChanges] = React.useState(new Set()); // dateStr
+    const [staffUsers, setStaffUsers] = React.useState([]);
+    const [actorUsers, setActorUsers] = React.useState([]);
+    const [gridData, setGridData] = React.useState({});                    // { userId: { dateStr: hoursStr } }
+    const [staffRemarksData, setStaffRemarksData] = React.useState({});    // { dateStr: remarks }
+    const [actorRemarksData, setActorRemarksData] = React.useState({});    // { dateStr: remarks }
+    const [changes, setChanges] = React.useState(new Set());               // "userId|dateStr"
+    const [staffRemarksChanges, setStaffRemarksChanges] = React.useState(new Set());
+    const [actorRemarksChanges, setActorRemarksChanges] = React.useState(new Set());
 
     const [loading, setLoading] = React.useState(false);
     const [saving, setSaving] = React.useState(false);
@@ -361,11 +426,14 @@ function ScheduleSummaryPage() {
         try {
             const result = await apiFetch(`/api/admin/schedule-summary/month?year=${y}&month=${m}`);
             if (!result) return;
-            setUsers(result.users || []);
+            setStaffUsers(result.staffUsers || []);
+            setActorUsers(result.actorUsers || []);
             setGridData(result.data || {});
-            setRemarksData(result.dateRemarks || {});
+            setStaffRemarksData(result.staffRemarks || {});
+            setActorRemarksData(result.actorRemarks || {});
             setChanges(new Set());
-            setRemarksChanges(new Set());
+            setStaffRemarksChanges(new Set());
+            setActorRemarksChanges(new Set());
         } catch (err) {
             showToast(err.message || '데이터 조회 실패', 'error');
         } finally {
@@ -375,14 +443,14 @@ function ScheduleSummaryPage() {
 
     // ── 년/월 변경 핸들러 ────────────────────────────────────────
     function handleYearChange(y) {
-        if (changes.size > 0 || remarksChanges.size > 0) {
+        if (changes.size > 0 || staffRemarksChanges.size > 0 || actorRemarksChanges.size > 0) {
             if (!confirm('저장하지 않은 변경사항이 있습니다. 계속하시겠습니까?')) return;
         }
         setYear(y);
     }
 
     function handleMonthChange(m) {
-        if (changes.size > 0 || remarksChanges.size > 0) {
+        if (changes.size > 0 || staffRemarksChanges.size > 0 || actorRemarksChanges.size > 0) {
             if (!confirm('저장하지 않은 변경사항이 있습니다. 계속하시겠습니까?')) return;
         }
         setMonth(m);
@@ -404,9 +472,18 @@ function ScheduleSummaryPage() {
     }
 
     // ── 특이사항 변경 핸들러 ───────────────────────────────────────
-    function handleRemarksChange(dateKey, value) {
-        setRemarksData(prev => ({ ...prev, [dateKey]: value }));
-        setRemarksChanges(prev => {
+    function handleStaffRemarksChange(dateKey, value) {
+        setStaffRemarksData(prev => ({ ...prev, [dateKey]: value }));
+        setStaffRemarksChanges(prev => {
+            const next = new Set(prev);
+            next.add(dateKey);
+            return next;
+        });
+    }
+
+    function handleActorRemarksChange(dateKey, value) {
+        setActorRemarksData(prev => ({ ...prev, [dateKey]: value }));
+        setActorRemarksChanges(prev => {
             const next = new Set(prev);
             next.add(dateKey);
             return next;
@@ -415,7 +492,7 @@ function ScheduleSummaryPage() {
 
     // ── 저장 ─────────────────────────────────────────────────────
     async function handleSave() {
-        if (changes.size === 0 && remarksChanges.size === 0) return;
+        if (changes.size === 0 && staffRemarksChanges.size === 0 && actorRemarksChanges.size === 0) return;
 
         const items = [];
         for (const key of changes) {
@@ -423,9 +500,13 @@ function ScheduleSummaryPage() {
             const hours = (gridData[userId] && gridData[userId][dk]) || '';
             items.push({ userId, date: dk, hours, remarks: null });
         }
-        // 특이사항 변경분 추가
-        for (const dk of remarksChanges) {
-            items.push({ userId: '__remarks__', date: dk, hours: '0', remarks: remarksData[dk] || '' });
+        // 스탭 특이사항 변경분
+        for (const dk of staffRemarksChanges) {
+            items.push({ userId: '__remarks_STAFF__', date: dk, hours: '0', remarks: staffRemarksData[dk] || '' });
+        }
+        // 배우 특이사항 변경분
+        for (const dk of actorRemarksChanges) {
+            items.push({ userId: '__remarks_ACTOR__', date: dk, hours: '0', remarks: actorRemarksData[dk] || '' });
         }
 
         setSaving(true);
@@ -435,7 +516,8 @@ function ScheduleSummaryPage() {
                 body: JSON.stringify(items),
             });
             setChanges(new Set());
-            setRemarksChanges(new Set());
+            setStaffRemarksChanges(new Set());
+            setActorRemarksChanges(new Set());
             showToast('저장되었습니다.', 'success');
         } catch (err) {
             showToast(err.message || '저장 실패', 'error');
@@ -471,13 +553,15 @@ function ScheduleSummaryPage() {
         toastTimerRef.current = setTimeout(() => setToast(null), 2800);
     }
 
+    const totalChanges = changes.size + staffRemarksChanges.size + actorRemarksChanges.size;
+
     // ── 렌더 ─────────────────────────────────────────────────────
     return e('div', { className: 'ss-wrap' },
         e(SsHeader, {
             year, month,
             onYearChange: handleYearChange,
             onMonthChange: handleMonthChange,
-            changesCount: changes.size + remarksChanges.size,
+            changesCount: totalChanges,
             onSave: handleSave,
             onExport: handleExport,
             saving,
@@ -487,9 +571,13 @@ function ScheduleSummaryPage() {
             loading
                 ? e('div', { className: 'ss-loading' }, '데이터를 불러오는 중...')
                 : e(SsTable, {
-                    year, month, users, gridData, remarksData, remarksChanges, changes,
+                    year, month, staffUsers, actorUsers, gridData,
+                    staffRemarksData, actorRemarksData,
+                    staffRemarksChanges, actorRemarksChanges,
+                    changes,
                     onCellChange: handleCellChange,
-                    onRemarksChange: handleRemarksChange,
+                    onStaffRemarksChange: handleStaffRemarksChange,
+                    onActorRemarksChange: handleActorRemarksChange,
                 })
         ),
 
