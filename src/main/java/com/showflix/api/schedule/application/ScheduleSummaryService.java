@@ -33,7 +33,8 @@ public class ScheduleSummaryService {
             int month,
             int daysInMonth,
             List<UserInfo> users,
-            Map<String, Map<String, String>> data  // userId -> (date -> hours)
+            Map<String, Map<String, String>> data,  // userId -> (date -> hours)
+            Map<String, String> dateRemarks          // date -> remarks (날짜별 특이사항)
     ) {}
 
     public record UserInfo(String userId, String userName, String accountType) {}
@@ -58,18 +59,25 @@ public class ScheduleSummaryService {
         // 해당 월 schedule_summary 데이터 조회
         List<ScheduleSummary> summaries = repository.findByMonth(start.toString(), end.toString());
 
-        // userId -> (date -> hours) 맵 구성
+        // userId -> (date -> hours) 맵 구성 + 날짜별 특이사항 추출
         Map<String, Map<String, String>> data = new LinkedHashMap<>();
+        Map<String, String> dateRemarks = new LinkedHashMap<>();
         for (ScheduleSummary s : summaries) {
-            // hours가 null/빈값/"0"이면 포함하지 않음
-            if (s.getHours() == null || s.getHours().isBlank() || "0".equals(s.getHours())) {
+            // __remarks__ 사용자: 날짜별 특이사항
+            if ("__remarks__".equals(s.getUserId())) {
+                if (s.getRemarks() != null && !s.getRemarks().isBlank()) {
+                    dateRemarks.put(s.getDate(), s.getRemarks());
+                }
                 continue;
             }
-            data.computeIfAbsent(s.getUserId(), k -> new LinkedHashMap<>())
-                .put(s.getDate(), s.getHours());
+            // hours 맵
+            if (s.getHours() != null && !s.getHours().isBlank() && !"0".equals(s.getHours())) {
+                data.computeIfAbsent(s.getUserId(), k -> new LinkedHashMap<>())
+                    .put(s.getDate(), s.getHours());
+            }
         }
 
-        return new MonthResult(year, month, end.getDayOfMonth(), users, data);
+        return new MonthResult(year, month, end.getDayOfMonth(), users, data, dateRemarks);
     }
 
     /**

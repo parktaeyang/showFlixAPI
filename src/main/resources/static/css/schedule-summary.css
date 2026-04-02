@@ -172,18 +172,18 @@ body {
     table-layout: fixed;
 }
 
-/* 이름 열 너비 */
-.ss-table th.ss-name-col,
-.ss-table td.ss-name-col {
+/* 날짜 열 (맨 왼쪽, 고정) */
+.ss-table th.ss-date-col,
+.ss-table td.ss-date-col {
     width: 80px;
     min-width: 80px;
 }
 
-/* 날짜 열 너비 */
-.ss-table th.ss-day-col,
-.ss-table td.ss-day-col {
-    width: 52px;
-    min-width: 52px;
+/* 출근자 열 (헤더 + 데이터) */
+.ss-table th.ss-user-col,
+.ss-table td.ss-user-col {
+    width: 60px;
+    min-width: 60px;
 }
 
 /* 합계 열 너비 */
@@ -191,6 +191,16 @@ body {
 .ss-table td.ss-total-col {
     width: 62px;
     min-width: 62px;
+}
+
+/* 특이사항 열 */
+.ss-table th.ss-remarks-col,
+.ss-table td.ss-remarks-col {
+    width: 160px;
+    min-width: 160px;
+    text-align: left;
+    white-space: normal;
+    word-break: break-word;
 }
 
 /* ==========================================
@@ -210,7 +220,7 @@ body {
     white-space: nowrap;
 }
 
-.ss-table thead th.ss-name-col {
+.ss-table thead th.ss-date-col {
     left: 0;
     z-index: 20;
     background: #5a3aa8;
@@ -218,14 +228,6 @@ body {
 
 .ss-table thead th.ss-total-col {
     background: #7c3aed;
-}
-
-.ss-table thead th.ss-sun {
-    background: #dc2626;
-}
-
-.ss-table thead th.ss-sat {
-    background: #2563eb;
 }
 
 /* ==========================================
@@ -239,8 +241,8 @@ body {
     background: #f0ebff;
 }
 
-/* 이름 셀 */
-.ss-table td.ss-name-col {
+/* 날짜 셀 (맨 왼쪽, 고정) */
+.ss-table td.ss-date-col {
     position: sticky;
     left: 0;
     z-index: 5;
@@ -254,16 +256,35 @@ body {
     color: #4c1d95;
 }
 
-.ss-table tbody tr:nth-child(even) td.ss-name-col {
+.ss-table tbody tr:nth-child(even) td.ss-date-col {
     background: #ede9fe;
 }
 
-.ss-table tbody tr:hover td.ss-name-col {
+.ss-table tbody tr:hover td.ss-date-col {
     background: #ddd6fe;
 }
 
-/* 날짜 데이터 셀 */
-.ss-table td.ss-day-col {
+/* 일요일/토요일 행 스타일 */
+.ss-table tbody tr.ss-sun-row td.ss-date-col { color: #dc2626; }
+.ss-table tbody tr.ss-sat-row td.ss-date-col { color: #2563eb; }
+
+/* 합계 행 */
+.ss-table tbody tr.ss-total-row {
+    font-weight: 700;
+    background: #faf5ff;
+}
+
+.ss-table tbody tr.ss-total-row td.ss-date-col {
+    background: #f5f3ff;
+}
+
+.ss-table tbody tr.ss-total-row td.ss-total-label {
+    font-weight: 700;
+    color: #4c1d95;
+}
+
+/* 출근자 데이터 셀 */
+.ss-table td.ss-user-col {
     text-align: center;
     padding: 2px;
     border: 1px solid #e5e7eb;
@@ -279,6 +300,32 @@ body {
     font-size: 0.85rem;
     color: #4c1d95;
     background: #faf5ff;
+}
+
+/* 특이사항 셀 */
+.ss-table td.ss-remarks-col {
+    padding: 2px;
+    border: 1px solid #e5e7eb;
+    vertical-align: middle;
+}
+
+/* 특이사항 입력 필드 */
+.ss-remarks-input {
+    width: 100%;
+    height: 32px;
+    border: none;
+    background: transparent;
+    text-align: left;
+    font-size: 0.78rem;
+    font-family: inherit;
+    color: #374151;
+    outline: none;
+    padding: 0 4px;
+}
+
+.ss-remarks-input:focus {
+    background: #eff6ff;
+    border-radius: 4px;
 }
 
 /* 변경된 셀 표시 */
