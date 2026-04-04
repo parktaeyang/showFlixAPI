@@ -140,3 +140,83 @@ CREATE TABLE IF NOT EXISTS sf_admin_note (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='관리자 메모';
+
+
+-- 관리자페이지
+
+-- 10. sf_angel_show_cancel: 엔젤쇼 취소현황
+CREATE TABLE IF NOT EXISTS sf_angel_show_cancel (
+    id            BIGINT        NOT NULL AUTO_INCREMENT,
+    cancel_date   VARCHAR(10)   NOT NULL COMMENT '취소 날짜 (YYYY-MM-DD)',
+    show_time     VARCHAR(5)    NULL     COMMENT '공연 시간 (HH:mm)',
+    reason        TEXT          NULL     COMMENT '취소 사유',
+    actor_name    VARCHAR(100)  NULL     COMMENT '배우명',
+    notes         TEXT          NULL     COMMENT '비고',
+    created_at    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    DATETIME      NULL     ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    INDEX idx_angel_cancel_date (cancel_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='엔젤쇼 취소현황';
+
+-- 11. sf_partner: 협력업체
+CREATE TABLE IF NOT EXISTS sf_partner (
+    id            BIGINT        NOT NULL AUTO_INCREMENT,
+    category      VARCHAR(50)   NULL     COMMENT '업종 분류',
+    name          VARCHAR(100)  NOT NULL COMMENT '업체명',
+    contact       VARCHAR(100)  NULL     COMMENT '연락처',
+    manager       VARCHAR(50)   NULL     COMMENT '담당자',
+    notes         TEXT          NULL     COMMENT '비고',
+    created_at    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    DATETIME      NULL     ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='협력업체';
+
+-- 12. sf_health_cert: 보건증 관리
+CREATE TABLE IF NOT EXISTS sf_health_cert (
+    user_id       VARCHAR(50)   NOT NULL COMMENT 'FK: sf_users.userid',
+    expire_date   VARCHAR(10)   NULL     COMMENT '만료일 (YYYY-MM-DD)',
+    notes         TEXT          NULL     COMMENT '비고',
+    updated_at    DATETIME      NULL     ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='보건증 관리';
+
+-- 13. sf_membership: 멤버십 회원
+CREATE TABLE IF NOT EXISTS sf_membership (
+    id            BIGINT        NOT NULL AUTO_INCREMENT,
+    member_name   VARCHAR(100)  NOT NULL COMMENT '회원명',
+    phone         VARCHAR(20)   NULL     COMMENT '연락처',
+    join_date     VARCHAR(10)   NULL     COMMENT '가입일 (YYYY-MM-DD)',
+    expire_date   VARCHAR(10)   NULL     COMMENT '만료일 (YYYY-MM-DD)',
+    memo          TEXT          NULL     COMMENT '메모',
+    created_at    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    DATETIME      NULL     ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='멤버십 회원';
+
+-- 14. sf_beer_select: 맥주 셀렉
+CREATE TABLE IF NOT EXISTS sf_beer_select (
+    id            BIGINT        NOT NULL AUTO_INCREMENT,
+    beer_name     VARCHAR(100)  NOT NULL COMMENT '맥주명',
+    brand         VARCHAR(100)  NULL     COMMENT '브랜드',
+    category      VARCHAR(50)   NULL     COMMENT '분류 (국산/수입 등)',
+    notes         TEXT          NULL     COMMENT '비고',
+    is_active     TINYINT(1)    NOT NULL DEFAULT 1 COMMENT '사용여부',
+    created_at    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    DATETIME      NULL     ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='맥주 셀렉';
+
+-- 15. sf_xmas_seat: 크리스마스 지정석
+CREATE TABLE IF NOT EXISTS sf_xmas_seat (
+    id            BIGINT        NOT NULL AUTO_INCREMENT,
+    event_date    VARCHAR(10)   NOT NULL COMMENT '이벤트 날짜 (YYYY-MM-DD)',
+    seat_label    VARCHAR(50)   NULL     COMMENT '좌석 번호/명칭',
+    customer_name VARCHAR(100)  NULL     COMMENT '예약자명',
+    phone         VARCHAR(20)   NULL     COMMENT '연락처',
+    people_count  INT           NULL     COMMENT '인원',
+    notes         TEXT          NULL     COMMENT '비고',
+    created_at    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    DATETIME      NULL     ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    INDEX idx_xmas_seat_date (event_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='크리스마스 지정석';

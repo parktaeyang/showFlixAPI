@@ -38,6 +38,7 @@ allowed-tools: Read, Write, Glob, Grep, Agent, Bash
 - 관련 레거시 코드 분석 (해당하는 경우)
 - 현재 프로젝트 아키텍처/패턴 분석
 - 관련 테이블/API/화면 구조
+- 현재 프로젝트의 로컬DB는 MySql이고 운영DB는 MariaDB입니다. 신규 테이블을 생성해야하는 경우 두 DB모두 호환되는 경우로 쿼리문을 작성해주세요. 
 
 ---
 
