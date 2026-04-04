@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.showflix.api.admin.mapper.BeerSelectMapper">
+
+    <select id="findAll" resultType="com.showflix.api.admin.domain.BeerSelect">
+        SELECT id,
+               beer_name AS beerName,
+               brand,
+               category,
+               notes,
+               is_active AS active
+        FROM sf_beer_select
+        ORDER BY is_active DESC, beer_name ASC
+    </select>
+
+    <select id="findById" parameterType="long"
+            resultType="com.showflix.api.admin.domain.BeerSelect">
+        SELECT id,
+               beer_name AS beerName,
+               brand,
+               category,
+               notes,
+               is_active AS active
+        FROM sf_beer_select
+        WHERE id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sf_beer_select (beer_name, brand, category, notes, is_active)
+        VALUES (#{beerName}, #{brand}, #{category}, #{notes}, #{active})
+    </insert>
+
+    <update id="update">
+        UPDATE sf_beer_select
+        SET beer_name = #{beerName},
+            brand     = #{brand},
+            category  = #{category},
+            notes     = #{notes},
+            is_active = #{active}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM sf_beer_select WHERE id = #{id}
+    </delete>
+
+</mapper>

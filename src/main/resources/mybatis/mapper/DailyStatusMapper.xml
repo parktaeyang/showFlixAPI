@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.showflix.api.admin.mapper.DailyStatusMapper">
+
+    <select id="findByDate"
+            resultType="com.showflix.api.admin.domain.DailyStatusEntry">
+        SELECT sd.user_id    AS userId,
+               sd.user_name  AS userName,
+               sd.role,
+               sd.confirmed,
+               sd.open_hope  AS openHope,
+               sd.remarks,
+               u.account_type AS accountType,
+               s.hours,
+               s.memo        AS scheduleMemo
+        FROM sf_selected_date sd
+        LEFT JOIN sf_users u ON sd.user_id = u.userid
+        LEFT JOIN sf_schedule s ON sd.date = s.date AND sd.user_name = s.username
+        WHERE sd.date = #{date}
+        ORDER BY u.account_type ASC, sd.user_name ASC
+    </select>
+
+</mapper>

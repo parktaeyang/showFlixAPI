@@ -44,28 +44,24 @@ public class CalendarController {
     }
 
     /**
-     * /admin/schedule-summary 경로로 접근 시 출근시간 관리 페이지 반환
-     * SecurityConfig의 /admin/** 패턴에 의해 ADMIN 권한 체크됨
+     * /admin/schedule-summary → /admin/#staff 리다이렉트
+     * 관리자 SPA 통합에 따라 기존 별도 페이지를 탭으로 리다이렉트
      */
     @GetMapping("/admin/schedule-summary")
-    public ResponseEntity<Resource> scheduleSummaryPage() throws IOException {
-        Resource resource = new ClassPathResource("static/admin/schedule-summary.html");
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE)
-                .body(resource);
+    public ResponseEntity<Void> scheduleSummaryPage() {
+        return ResponseEntity.status(302)
+                .header(HttpHeaders.LOCATION, "/admin/#staff")
+                .build();
     }
 
     /**
-     * /admin/work-diary 경로로 접근 시 업무일지 페이지 반환
-     * SecurityConfig의 /admin/** 패턴에 의해 ADMIN 권한 체크됨
+     * /admin/work-diary → /admin/#work-diary 리다이렉트
+     * 관리자 SPA 통합에 따라 기존 별도 페이지를 탭으로 리다이렉트
      */
     @GetMapping("/admin/work-diary")
-    public ResponseEntity<Resource> workDiaryPage() throws IOException {
-        Resource resource = new ClassPathResource("static/admin/work-diary.html");
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE)
-                .body(resource);
+    public ResponseEntity<Void> workDiaryPage() {
+        return ResponseEntity.status(302)
+                .header(HttpHeaders.LOCATION, "/admin/#work-diary")
+                .build();
     }
 }

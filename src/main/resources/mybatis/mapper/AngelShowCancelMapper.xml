@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.showflix.api.admin.mapper.AngelShowCancelMapper">
+
+    <select id="findByYearAndMonth"
+            resultType="com.showflix.api.admin.domain.AngelShowCancel">
+        SELECT id,
+               cancel_date AS cancelDate,
+               show_time   AS showTime,
+               reason,
+               actor_name  AS actorName,
+               notes
+        FROM sf_angel_show_cancel
+        WHERE YEAR(cancel_date) = #{year}
+          AND MONTH(cancel_date) = #{month}
+        ORDER BY cancel_date DESC, show_time ASC
+    </select>
+
+    <select id="findById" parameterType="long"
+            resultType="com.showflix.api.admin.domain.AngelShowCancel">
+        SELECT id,
+               cancel_date AS cancelDate,
+               show_time   AS showTime,
+               reason,
+               actor_name  AS actorName,
+               notes
+        FROM sf_angel_show_cancel
+        WHERE id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sf_angel_show_cancel (cancel_date, show_time, reason, actor_name, notes)
+        VALUES (#{cancelDate}, #{showTime}, #{reason}, #{actorName}, #{notes})
+    </insert>
+
+    <update id="update">
+        UPDATE sf_angel_show_cancel
+        SET cancel_date = #{cancelDate},
+            show_time   = #{showTime},
+            reason      = #{reason},
+            actor_name  = #{actorName},
+            notes       = #{notes}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM sf_angel_show_cancel WHERE id = #{id}
+    </delete>
+
+</mapper>

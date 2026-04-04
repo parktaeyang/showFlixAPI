@@ -1,6 +1,6 @@
 /* ==========================================
    admin.css - 관리자 페이지 스타일
-   모바일 특화 (max-width: 520px)
+   SPA 통합 (15개 탭)
    ========================================== */
 
 * {
@@ -17,10 +17,10 @@ body {
 }
 
 /* ==========================================
-   레이아웃
+   레이아웃 - 넓은 테이블 탭 지원을 위해 max-width 확장
    ========================================== */
 .admin-wrap {
-    max-width: 520px;
+    max-width: 100%;
     margin: 0 auto;
     min-height: 100vh;
     display: flex;
@@ -72,22 +72,63 @@ body {
 }
 
 /* ==========================================
-   탭 바
+   탭 바 - 그룹별 (관리 / 월별)
    ========================================== */
-.admin-tab-bar {
+.admin-tab-bar-wrap {
     background: #fff;
-    display: flex;
     border-bottom: 2px solid #e8e4ff;
     position: sticky;
-    top: 54px;
+    top: 50px;
     z-index: 99;
+    padding: 0;
+}
+
+.admin-tab-group {
+    display: flex;
+    align-items: flex-start;
+    border-bottom: 1px solid #f0eeff;
+    padding: 0;
+}
+
+.admin-tab-group:last-child {
+    border-bottom: none;
+}
+
+.admin-tab-group-label {
+    flex-shrink: 0;
+    padding: 10px 12px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #6b46c1;
+    background: #f5f3ff;
+    min-width: 40px;
+    text-align: center;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid #e8e4ff;
+}
+
+.admin-tab-group-label.monthly {
+    color: #0369a1;
+    background: #f0f9ff;
+}
+
+.admin-tab-group-tabs {
+    display: flex;
+    align-items: center;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+    flex: 1;
+    padding: 0 4px;
 }
 
 .admin-tab {
-    flex: 1;
-    padding: 13px 8px;
+    padding: 10px 12px;
     text-align: center;
-    font-size: 0.88rem;
+    font-size: 0.82rem;
     font-weight: 600;
     color: #9ca3af;
     cursor: pointer;
@@ -95,7 +136,12 @@ body {
     background: none;
     border-bottom: 3px solid transparent;
     transition: color 0.2s, border-color 0.2s;
-    margin-bottom: -2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.admin-tab:hover {
+    color: #6b46c1;
 }
 
 .admin-tab.active {
@@ -104,11 +150,64 @@ body {
 }
 
 /* ==========================================
+   월 네비게이터
+   ========================================== */
+.month-navigator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 10px 16px;
+    background: #faf9ff;
+    border-bottom: 1px solid #e8e4ff;
+    position: sticky;
+    top: 120px;
+    z-index: 98;
+}
+
+.month-nav-btn {
+    background: #ede9fe;
+    color: #6b46c1;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.month-nav-btn:hover {
+    background: #ddd6fe;
+}
+
+.month-nav-label {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #4c1d95;
+    min-width: 100px;
+    text-align: center;
+}
+
+/* ==========================================
    탭 컨텐츠 영역
    ========================================== */
 .admin-content {
     flex: 1;
     padding: 16px;
+    max-width: 520px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* 넓은 콘텐츠 (스탭, 업무일지 등 테이블 탭) */
+.staff-content,
+.wd-content {
+    max-width: 100%;
+    overflow-x: auto;
 }
 
 .section-title {
@@ -116,6 +215,56 @@ body {
     font-weight: 700;
     color: #4c1d95;
     margin-bottom: 14px;
+}
+
+/* ==========================================
+   스탭 탭 - 액션바
+   ========================================== */
+.staff-action-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: #faf9ff;
+    border-bottom: 1px solid #e8e4ff;
+    flex-wrap: wrap;
+}
+
+.ss-changes-badge {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #dc2626;
+    background: #fee2e2;
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+/* ==========================================
+   플레이스홀더 탭 (미구현)
+   ========================================== */
+.placeholder-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    gap: 12px;
+}
+
+.placeholder-icon {
+    font-size: 3rem;
+    opacity: 0.5;
+}
+
+.placeholder-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #4c1d95;
+}
+
+.placeholder-desc {
+    font-size: 0.88rem;
+    color: #9ca3af;
 }
 
 /* ==========================================
@@ -225,6 +374,21 @@ body {
 .badge-account-type {
     background: #dbeafe;
     color: #1d4ed8;
+}
+
+.badge-expired {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-valid {
+    background: #d1fae5;
+    color: #065f46;
 }
 
 .user-card-actions {
@@ -552,16 +716,13 @@ body {
    바우처/팁 관리 탭
    ========================================== */
 
-/* 탭 컨텐츠 패딩 제거 (sticky bar가 직접 처리) */
 .voucher-content {
     padding: 0;
 }
 
-/* 날짜 + 저장 버튼 고정 바
-   헤더(~54px) + 탭바(~44px) = 98px 아래에 sticky */
 .voucher-sticky-bar {
     position: sticky;
-    top: 98px;
+    top: 160px;
     z-index: 90;
     display: flex;
     align-items: center;
@@ -569,6 +730,9 @@ body {
     background: linear-gradient(to bottom, #f8f5ff 80%, transparent 100%);
     padding: 12px 16px 10px;
     border-bottom: 1px solid #e8e4ff;
+    max-width: 520px;
+    margin: 0 auto;
+    width: 100%;
 }
 
 .voucher-date-input {
@@ -577,7 +741,6 @@ body {
     padding: 9px 12px;
 }
 
-/* 전체 저장 버튼 */
 .btn-save-voucher {
     flex-shrink: 0;
     padding: 9px 18px;
@@ -601,7 +764,6 @@ body {
     cursor: not-allowed;
 }
 
-/* 목록 영역 패딩 */
 .voucher-content .list-header,
 .voucher-content .loading-text,
 .voucher-content .msg,
@@ -615,7 +777,6 @@ body {
     margin-top: 14px;
 }
 
-/* 배우 목록 테이블 */
 .voucher-table {
     display: flex;
     flex-direction: column;
@@ -623,7 +784,6 @@ body {
     margin-bottom: 16px;
 }
 
-/* 배우 1행 */
 .voucher-row {
     background: #fff;
     border: 1px solid #e8e4ff;
@@ -634,7 +794,6 @@ body {
     gap: 10px;
 }
 
-/* 배우 이름 + 역할 */
 .voucher-row-info {
     display: flex;
     align-items: center;
@@ -647,7 +806,6 @@ body {
     color: #2d2d3a;
 }
 
-/* 바우처/팁 입력 그룹 */
 .voucher-row-inputs {
     display: flex;
     gap: 10px;
@@ -667,7 +825,6 @@ body {
     font-weight: 600;
 }
 
-/* 입력 + 단위 묶음 */
 .voucher-input-wrap {
     display: flex;
     align-items: center;
@@ -697,7 +854,6 @@ body {
     -moz-appearance: textfield;
 }
 
-/* 바우처(number) spin 버튼 제거 */
 .voucher-input[type="number"]::-webkit-inner-spin-button,
 .voucher-input[type="number"]::-webkit-outer-spin-button {
     -webkit-appearance: none;
@@ -708,7 +864,6 @@ body {
     color: #d1d5db;
 }
 
-/* 단위 표시 (개 / 원) */
 .voucher-input-unit {
     padding: 8px 10px 8px 4px;
     font-size: 0.82rem;
@@ -717,7 +872,6 @@ body {
     user-select: none;
 }
 
-/* 합계 행 */
 .voucher-summary {
     display: flex;
     align-items: center;
@@ -780,4 +934,326 @@ body {
     border-color: #7c3aed;
     color: #6d28d9;
     font-weight: 600;
+}
+
+/* ==========================================
+   스탭 출근시간 테이블 (schedule-summary 통합)
+   ========================================== */
+.ss-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 8px 16px;
+}
+
+.ss-table {
+    border-collapse: collapse;
+    width: max-content;
+    min-width: 100%;
+    font-size: 0.78rem;
+}
+
+.ss-table th,
+.ss-table td {
+    border: 1px solid #e8e4ff;
+    padding: 4px 6px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.ss-table th {
+    background: #f5f3ff;
+    color: #4c1d95;
+    font-weight: 700;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.ss-date-col {
+    min-width: 70px;
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    background: #faf9ff;
+    font-weight: 600;
+}
+
+.ss-table th.ss-date-col {
+    z-index: 4;
+    background: #f5f3ff;
+}
+
+.ss-user-col {
+    min-width: 42px;
+}
+
+.ss-actor-col {
+    background: #fffbeb;
+}
+
+.ss-remarks-col {
+    min-width: 100px;
+}
+
+.ss-remarks-input {
+    width: 100%;
+    min-width: 90px;
+    border: none;
+    background: transparent;
+    font-size: 0.76rem;
+    color: #374151;
+    outline: none;
+    padding: 2px 4px;
+}
+
+.ss-remarks-input:focus {
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 0 0 1px #8b5cf6;
+}
+
+.ss-total-col {
+    min-width: 42px;
+    font-weight: 700;
+    background: #f0fdf4;
+}
+
+.ss-group-border-left {
+    border-left: 2px solid #c4b5fd;
+}
+
+.ss-cell-empty {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    color: #d1d5db;
+    cursor: pointer;
+    user-select: none;
+}
+
+.ss-cell-empty:hover {
+    color: #9ca3af;
+}
+
+.ss-cell-input {
+    width: 38px;
+    border: none;
+    background: transparent;
+    text-align: center;
+    font-size: 0.78rem;
+    color: #2d2d3a;
+    outline: none;
+    padding: 2px;
+}
+
+.ss-cell-input:focus {
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 0 0 1px #8b5cf6;
+}
+
+.ss-changed {
+    background: #fef3c7 !important;
+}
+
+.ss-sun-row td {
+    color: #dc2626;
+}
+
+.ss-sat-row td {
+    color: #2563eb;
+}
+
+.ss-total-row td {
+    background: #f0fdf4;
+    font-weight: 700;
+    border-top: 2px solid #86efac;
+}
+
+.ss-total-label {
+    font-weight: 700;
+    color: #059669;
+}
+
+.ss-grand-total {
+    color: #059669;
+    font-size: 0.85rem;
+}
+
+.ss-empty {
+    text-align: center;
+    color: #9ca3af;
+    padding: 40px 16px;
+}
+
+/* 토스트 */
+.ss-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 24px;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    z-index: 300;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    background: #1f2937;
+    color: #fff;
+}
+
+.ss-toast.success {
+    background: #059669;
+}
+
+.ss-toast.error {
+    background: #dc2626;
+}
+
+/* ==========================================
+   업무일지 테이블 (work-diary 통합)
+   ========================================== */
+.wd-body {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 8px 16px;
+}
+
+.wd-table {
+    border-collapse: collapse;
+    width: max-content;
+    min-width: 100%;
+    font-size: 0.82rem;
+}
+
+.wd-table th,
+.wd-table td {
+    border: 1px solid #e8e4ff;
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+}
+
+.wd-table th {
+    background: #f5f3ff;
+    color: #4c1d95;
+    font-weight: 700;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.wd-col-date {
+    min-width: 70px;
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+.wd-col-manager {
+    min-width: 70px;
+}
+
+.wd-col-cash,
+.wd-col-reserve,
+.wd-col-event,
+.wd-col-store,
+.wd-col-notes {
+    min-width: 120px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.wd-col-actions {
+    min-width: 100px;
+    white-space: nowrap;
+}
+
+.wd-input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1.5px solid #e8e4ff;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    outline: none;
+}
+
+.wd-input:focus {
+    border-color: #8b5cf6;
+}
+
+.wd-textarea {
+    width: 100%;
+    min-width: 100px;
+    padding: 6px 8px;
+    border: 1.5px solid #e8e4ff;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+}
+
+.wd-textarea:focus {
+    border-color: #8b5cf6;
+}
+
+.wd-row-btn {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    margin-right: 4px;
+}
+
+.wd-row-btn-edit {
+    background: #ede9fe;
+    color: #6b46c1;
+}
+
+.wd-row-btn-delete {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.wd-row-btn-save {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.wd-row-btn-cancel {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+.wd-empty {
+    text-align: center;
+    color: #9ca3af;
+    padding: 40px 0;
+}
+
+/* ==========================================
+   모바일 대응
+   ========================================== */
+@media (max-width: 768px) {
+    .admin-tab {
+        padding: 8px 8px;
+        font-size: 0.75rem;
+    }
+
+    .admin-tab-group-label {
+        font-size: 0.68rem;
+        padding: 8px 8px;
+        min-width: 32px;
+    }
+
+    .month-navigator {
+        padding: 8px 12px;
+    }
+
+    .month-nav-label {
+        font-size: 0.92rem;
+    }
 }

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.showflix.api.admin.mapper.XmasSeatMapper">
+
+    <select id="findByEventDate" resultType="com.showflix.api.admin.domain.XmasSeat">
+        SELECT id,
+               event_date    AS eventDate,
+               seat_label    AS seatLabel,
+               customer_name AS customerName,
+               phone,
+               people_count  AS peopleCount,
+               notes
+        FROM sf_xmas_seat
+        WHERE event_date = #{eventDate}
+        ORDER BY seat_label ASC
+    </select>
+
+    <select id="findById" parameterType="long"
+            resultType="com.showflix.api.admin.domain.XmasSeat">
+        SELECT id,
+               event_date    AS eventDate,
+               seat_label    AS seatLabel,
+               customer_name AS customerName,
+               phone,
+               people_count  AS peopleCount,
+               notes
+        FROM sf_xmas_seat
+        WHERE id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sf_xmas_seat (event_date, seat_label, customer_name, phone, people_count, notes)
+        VALUES (#{eventDate}, #{seatLabel}, #{customerName}, #{phone}, #{peopleCount}, #{notes})
+    </insert>
+
+    <update id="update">
+        UPDATE sf_xmas_seat
+        SET event_date    = #{eventDate},
+            seat_label    = #{seatLabel},
+            customer_name = #{customerName},
+            phone         = #{phone},
+            people_count  = #{peopleCount},
+            notes         = #{notes}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM sf_xmas_seat WHERE id = #{id}
+    </delete>
+
+</mapper>

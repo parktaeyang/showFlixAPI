@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.showflix.api.admin.mapper.MembershipMapper">
+
+    <select id="findAll" resultType="com.showflix.api.admin.domain.Membership">
+        SELECT id,
+               member_name AS memberName,
+               phone,
+               join_date   AS joinDate,
+               expire_date AS expireDate,
+               memo
+        FROM sf_membership
+        ORDER BY id DESC
+    </select>
+
+    <select id="findById" parameterType="long"
+            resultType="com.showflix.api.admin.domain.Membership">
+        SELECT id,
+               member_name AS memberName,
+               phone,
+               join_date   AS joinDate,
+               expire_date AS expireDate,
+               memo
+        FROM sf_membership
+        WHERE id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sf_membership (member_name, phone, join_date, expire_date, memo)
+        VALUES (#{memberName}, #{phone}, #{joinDate}, #{expireDate}, #{memo})
+    </insert>
+
+    <update id="update">
+        UPDATE sf_membership
+        SET member_name = #{memberName},
+            phone       = #{phone},
+            join_date   = #{joinDate},
+            expire_date = #{expireDate},
+            memo        = #{memo}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM sf_membership WHERE id = #{id}
+    </delete>
+
+</mapper>

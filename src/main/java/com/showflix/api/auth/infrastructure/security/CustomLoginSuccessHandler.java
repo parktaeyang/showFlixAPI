@@ -51,7 +51,8 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
         response.setContentType("application/json;charset=UTF-8");
 
         Map<String, String> data = new HashMap<>();
-        data.put("redirect", "/schedule/calendar");
+        String redirectUrl = user.isAdmin() ? "/admin/" : "/schedule/calendar";
+        data.put("redirect", redirectUrl);
 
         objectMapper.writeValue(response.getWriter(), data);
     }
