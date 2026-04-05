@@ -19,14 +19,16 @@ SELECT
     COALESCE(created_at, NOW())
 FROM schedule_users
 ON DUPLICATE KEY UPDATE username = VALUES(username);
+commit;
 
 -- 2. sf_selected_date <- selected_date
 INSERT INTO sf_selected_date (date, user_id, user_name, open_hope, role, confirmed, remarks, created_at)
 SELECT
-    date, user_id, user_name, open_hope, role, confirmed, remarks,
+    date, user_id, user_name, open_hope, role, nvl(confirmed, 'N'), remarks,
     NOW()
 FROM selected_date
 ON DUPLICATE KEY UPDATE user_name = VALUES(user_name);
+commit;
 
 -- 3. sf_schedule <- schedule
 INSERT INTO sf_schedule (id, date, username, hours, memo, remarks, created_at)
@@ -35,6 +37,7 @@ SELECT
     NOW()
 FROM schedule
 ON DUPLICATE KEY UPDATE hours = VALUES(hours);
+commit;
 
 -- 4. sf_time_slot <- schedule_time_slot
 INSERT INTO sf_time_slot (schedule_date, time_slot, theme, performer, confirmed, created_at)
@@ -43,6 +46,7 @@ SELECT
     NOW()
 FROM schedule_time_slot
 ON DUPLICATE KEY UPDATE theme = VALUES(theme);
+commit;
 
 -- 5. sf_special <- schedule_special (미사용 컬럼 제외)
 INSERT INTO sf_special (id, reservation_date, reservation_time, customer_name, people_count, contact_info, notes, created_at)
@@ -51,6 +55,7 @@ SELECT
     NOW()
 FROM schedule_special
 ON DUPLICATE KEY UPDATE customer_name = VALUES(customer_name);
+commit;
 
 -- 6. sf_summary <- schedule_summary
 INSERT INTO sf_summary (id, user_id, date, hours, remarks, created_at)
@@ -59,6 +64,7 @@ SELECT
     NOW()
 FROM schedule_summary
 ON DUPLICATE KEY UPDATE hours = VALUES(hours);
+commit;
 
 -- 7. sf_work_diary <- work_diary (또는 work_log)
 -- 레거시 테이블명이 work_log인 경우 아래 FROM을 work_log로 변경
@@ -68,6 +74,8 @@ SELECT
     NOW()
 FROM work_diary
 ON DUPLICATE KEY UPDATE manager = VALUES(manager);
+commit;
+select * from work_diary;
 
 -- 8. sf_voucher_tip <- actor_voucher_tip
 INSERT INTO sf_voucher_tip (id, date, user_id, user_name, voucher, tip, created_at)
@@ -76,13 +84,13 @@ SELECT
     NOW()
 FROM actor_voucher_tip
 ON DUPLICATE KEY UPDATE voucher = VALUES(voucher);
+commit;
 
 -- 9. sf_admin_note <- admin_note
 INSERT INTO sf_admin_note (id, content, updated_by, updated_at)
 SELECT id, content, updated_by, updated_at
 FROM admin_note
 ON DUPLICATE KEY UPDATE content = VALUES(content);
-
 COMMIT ;
 
 -- ============================================

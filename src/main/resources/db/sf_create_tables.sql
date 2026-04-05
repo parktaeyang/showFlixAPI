@@ -242,3 +242,12 @@ CREATE TABLE IF NOT EXISTS sf_daily_note (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='연간일정 날짜별 메모';
 
+commit;
+
+ALTER TABLE sf_angel_show_cancel CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ALTER TABLE sf_partner CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ALTER TABLE sf_health_cert CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ALTER TABLE sf_membership CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ALTER TABLE sf_beer_select CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ALTER TABLE sf_xmas_seat CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
