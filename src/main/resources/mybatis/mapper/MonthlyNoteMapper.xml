@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.showflix.api.admin.mapper.MonthlyNoteMapper">
+
+    <select id="findByYearMonth"
+            resultType="com.showflix.api.admin.domain.MonthlyNote">
+        SELECT year, month, content, updated_by AS updatedBy
+        FROM sf_monthly_note
+        WHERE year = #{year} AND month = #{month}
+    </select>
+
+    <insert id="upsert">
+        INSERT INTO sf_monthly_note (year, month, content, updated_by, updated_at)
+        VALUES (#{year}, #{month}, #{content}, #{updatedBy}, NOW())
+        ON DUPLICATE KEY UPDATE
+            content    = VALUES(content),
+            updated_by = VALUES(updated_by),
+            updated_at = NOW()
+    </insert>
+
+</mapper>

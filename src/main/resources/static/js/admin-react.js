@@ -2267,18 +2267,152 @@ function HealthCertTab() {
 }
 
 // ════════════════════════════════════════════════════════════════════
-// AnnualCalendarTab - 연간일정캘린더 (읽기 전용)
+// DayTextCell - 날짜 셀 텍스트 편집 (contentEditable, 훅 사용을 위해 독립 컴포넌트)
+// ════════════════════════════════════════════════════════════════════
+function DayTextCell({ dateKey, dailyNoteMap }) {
+    const cellRef = React.useRef(null);
+
+    React.useEffect(() => {
+        if (cellRef.current && document.activeElement !== cellRef.current) {
+            cellRef.current.innerText = dailyNoteMap[dateKey] || '';
+        }
+    }, [dailyNoteMap, dateKey]);
+
+    function saveDailyNote(noteDate, content) {
+        if (content === '' && !dailyNoteMap[noteDate]) return;
+        apiFetch('/api/admin/daily-note', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ noteDate, content })
+        }).catch(() => {
+            const el = document.querySelector(`[data-date="${noteDate}"]`);
+            if (el) {
+                el.classList.add('ac-day-text--error');
+                setTimeout(() => el.classList.remove('ac-day-text--error'), 2000);
+            }
+        });
+    }
+
+    return e('div', {
+        ref: cellRef,
+        className: 'ac-day-text',
+        contentEditable: true,
+        suppressContentEditableWarning: true,
+        'data-date': dateKey,
+        onBlur: ev => saveDailyNote(dateKey, ev.target.innerText.trim()),
+        onKeyDown: ev => {
+            if (ev.key === 'Escape') {
+                ev.target.innerText = dailyNoteMap[dateKey] || '';
+                ev.target.blur();
+            }
+        }
+    });
+}
+
+// ════════════════════════════════════════════════════════════════════
+// MonthBlock - 월별 달력 블록 (훅 규칙 준수를 위해 독립 컴포넌트)
+// ════════════════════════════════════════════════════════════════════
+function MonthBlock({ year, monthIndex, dailyNoteMap, isCurrentMonth }) {
+    const monthNum = monthIndex + 1;
+    const WEEKDAYS = ['월', '화', '수', '목', '금', '토', '일'];
+
+    // ③ 현재 월 자동 스크롤용 ref
+    const blockRef = React.useRef(null);
+    React.useEffect(() => {
+        if (isCurrentMonth && blockRef.current) {
+            blockRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }, [isCurrentMonth]);
+
+    // 월별 주요사항 state
+    const [noteContent, setNoteContent] = React.useState('');
+    const [savedMsg, setSavedMsg] = React.useState('');
+
+    // 월 주요사항 로드
+    React.useEffect(() => {
+        apiFetch(`/api/admin/monthly-note?year=${year}&month=${monthNum}`)
+            .then(data => { if (data) setNoteContent(data.content || ''); })
+            .catch(() => {});
+    }, [year, monthNum]);
+
+    function saveNote() {
+        apiFetch('/api/admin/monthly-note', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ year, month: monthNum, content: noteContent })
+        }).then(() => {
+            setSavedMsg('저장됨');
+            setTimeout(() => setSavedMsg(''), 2000);
+        }).catch(err => console.error('주요사항 저장 실패:', err));
+    }
+
+    // 월요일 시작 달력 셀 계산 (getDay()+6)%7 → 0=월, 6=일
+    const firstDow = (new Date(year, monthIndex, 1).getDay() + 6) % 7;
+    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+    const cells = [];
+    for (let i = 0; i < firstDow; i++) cells.push(null);
+    for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+    return e('div', { ref: blockRef, className: 'ac-month-block' },
+        e('div', { className: 'ac-month-title' }, `${year}년 ${monthNum}월`),
+        e('div', { className: 'ac-month-body' },
+            // 좌측: 달력 그리드
+            e('div', { className: 'ac-calendar-area' },
+                e('div', { className: 'ac-weekday-row' },
+                    WEEKDAYS.map((wd, i) =>
+                        e('div', {
+                            key: wd,
+                            className: `ac-weekday-cell${i === 5 ? ' saturday' : i === 6 ? ' sunday' : ''}`
+                        }, wd)
+                    )
+                ),
+                e('div', { className: 'ac-day-grid' },
+                    cells.map((d, idx) => {
+                        if (d === null) {
+                            return e('div', { key: `empty-${idx}`, className: 'ac-day-cell empty' });
+                        }
+                        const dateKey = `${year}-${String(monthNum).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                        const dow = (firstDow + d - 1) % 7;  // 0=월,...,5=토,6=일
+                        const dayClass = `ac-day-cell${dow === 5 ? ' saturday' : dow === 6 ? ' sunday' : ''}`;
+
+                        return e('div', { key: dateKey, className: dayClass },
+                            e('div', { className: 'ac-day-num' }, d),
+                            e(DayTextCell, { dateKey, dailyNoteMap })
+                        );
+                    })
+                )
+            ),
+            // 우측: 이 달의 주요사항 (직접 입력)
+            e('div', { className: 'ac-note-area' },
+                e('div', { className: 'ac-note-title' }, '이 달의 주요사항'),
+                e('textarea', {
+                    className: 'ac-note-textarea',
+                    rows: 7,
+                    value: noteContent,
+                    onChange: ev => setNoteContent(ev.target.value),
+                    placeholder: '이 달의 주요사항을 입력하세요...'
+                }),
+                e('button', { className: 'ac-note-save-btn', onClick: saveNote }, '저장'),
+                savedMsg ? e('div', { className: 'ac-note-saved-msg' }, savedMsg) : null
+            )
+        )
+    );
+}
+
+// ════════════════════════════════════════════════════════════════════
+// AnnualCalendarTab - 연간일정캘린더 (구글시트 스타일 달력 그리드)
 // ════════════════════════════════════════════════════════════════════
 function AnnualCalendarTab() {
     const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth();  // 0-based
     const [year, setYear] = React.useState(currentYear);
     const [items, setItems] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
 
     function loadData(y) {
         setLoading(true);
-        apiFetch(`/api/admin/annual-calendar?year=${y}`)
-            .then(data => { if (data) setItems(data); else setItems([]); })
+        apiFetch(`/api/admin/daily-note?year=${y}`)
+            .then(data => { setItems(data || []); })
             .catch(err => { console.error('연간일정 로드 실패:', err); setItems([]); })
             .finally(() => setLoading(false));
     }
@@ -2286,6 +2420,18 @@ function AnnualCalendarTab() {
     React.useEffect(() => { loadData(year); }, [year]);
 
     const years = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
+
+    // 날짜 → content 단순 매핑
+    function buildDailyNoteMap(items) {
+        const result = {};
+        items.forEach(item => {
+            if (!item.noteDate) return;
+            result[item.noteDate] = item.content || '';
+        });
+        return result;
+    }
+
+    const dailyNoteMap = buildDailyNoteMap(items);
 
     return e('div', { className: 'admin-content staff-content' },
         // 연도 선택 바
@@ -2299,33 +2445,20 @@ function AnnualCalendarTab() {
                 years.map(y => e('option', { key: y, value: y }, y + '년'))
             )
         ),
-        e('div', { className: 'wd-body' },
+        // 달력 본문 (1~12월)
+        e('div', { style: { padding: '16px' } },
             loading
                 ? e('div', { className: 'loading-text' }, '불러오는 중...')
-                : items.length === 0
-                    ? e('div', { className: 'loading-text' }, '등록된 공연 일정이 없습니다.')
-                    : e('table', { className: 'wd-table' },
-                        e('thead', null,
-                            e('tr', null,
-                                e('th', null, '날짜'),
-                                e('th', null, '시간대'),
-                                e('th', null, '테마'),
-                                e('th', null, '공연자'),
-                                e('th', null, '확정')
-                            )
-                        ),
-                        e('tbody', null,
-                            ...items.map((item, idx) =>
-                                e('tr', { key: idx },
-                                    e('td', { className: 'wd-col-date' }, item.scheduleDate || ''),
-                                    e('td', null, item.timeSlot || ''),
-                                    e('td', null, item.theme || ''),
-                                    e('td', null, item.performer || ''),
-                                    e('td', null, item.confirmed ? 'O' : '-')
-                                )
-                            )
-                        )
-                    )
+                : Array.from({ length: 12 }, (_, i) =>
+                    e(MonthBlock, {
+                        key: i,
+                        year,
+                        monthIndex: i,
+                        dailyNoteMap,
+                        // ③ 현재 연도 선택 시에만 현재 월로 자동 스크롤
+                        isCurrentMonth: year === currentYear && i === currentMonth
+                    })
+                  )
         )
     );
 }

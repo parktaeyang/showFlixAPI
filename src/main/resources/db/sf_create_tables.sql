@@ -220,3 +220,25 @@ CREATE TABLE IF NOT EXISTS sf_xmas_seat (
     PRIMARY KEY (id),
     INDEX idx_xmas_seat_date (event_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='크리스마스 지정석';
+
+-- 16. sf_monthly_note: 연간일정캘린더 월별 주요사항
+CREATE TABLE IF NOT EXISTS sf_monthly_note (
+    year          SMALLINT      NOT NULL COMMENT '연도',
+    month         TINYINT       NOT NULL COMMENT '월 (1~12)',
+    content       TEXT          NULL     COMMENT '이 달의 주요사항 (자유 텍스트)',
+    updated_by    VARCHAR(50)   NULL     COMMENT '수정자',
+    updated_at    DATETIME      NULL     ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (year, month)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='월별 주요사항 메모';
+
+-- 17. sf_daily_note: 연간일정캘린더 날짜별 메모
+CREATE TABLE IF NOT EXISTS sf_daily_note (
+    note_date     VARCHAR(10)   NOT NULL COMMENT '날짜 (YYYY-MM-DD)',
+    content       TEXT          NULL     COMMENT '관리자 입력 텍스트',
+    updated_by    VARCHAR(50)   NULL     COMMENT '수정자',
+    updated_at    DATETIME      NULL     ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    PRIMARY KEY (note_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='연간일정 날짜별 메모';
+

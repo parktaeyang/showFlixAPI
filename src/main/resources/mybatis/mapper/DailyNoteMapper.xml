@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.showflix.api.admin.mapper.DailyNoteMapper">
+
+    <select id="findByYear"
+            resultType="com.showflix.api.admin.domain.DailyNote">
+        SELECT note_date AS noteDate, content, updated_by AS updatedBy
+        FROM sf_daily_note
+        WHERE note_date >= CONCAT(#{year}, '-01-01')
+          AND note_date &lt;= CONCAT(#{year}, '-12-31')
+        ORDER BY note_date ASC
+    </select>
+
+    <insert id="upsert">
+        INSERT INTO sf_daily_note (note_date, content, updated_by, updated_at)
+        VALUES (#{noteDate}, #{content}, #{updatedBy}, NOW())
+        ON DUPLICATE KEY UPDATE
+            content    = VALUES(content),
+            updated_by = VALUES(updated_by),
+            updated_at = NOW()
+    </insert>
+
+</mapper>
