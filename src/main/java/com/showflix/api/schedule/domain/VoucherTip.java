@@ -5,7 +5,7 @@ import lombok.Setter;
 
 /**
  * Domain Layer - 배우 바우처/팁 도메인 모델
- * 테이블: actor_voucher_tip
+ * 테이블: sf_voucher_tip
  */
 @Getter
 @Setter

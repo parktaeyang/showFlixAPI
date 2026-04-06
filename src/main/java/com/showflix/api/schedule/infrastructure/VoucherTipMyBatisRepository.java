@@ -25,6 +25,16 @@ public class VoucherTipMyBatisRepository implements VoucherTipRepository {
     }
 
     @Override
+    public List<VoucherTip> findByYearMonth(String yearMonth) {
+        return voucherTipMapper.findByYearMonth(yearMonth);
+    }
+
+    @Override
+    public List<VoucherTip> findByMonth(String startDate, String endDate) {
+        return voucherTipMapper.findByMonth(startDate, endDate);
+    }
+
+    @Override
     public void upsert(VoucherTip voucherTip) {
         voucherTipMapper.upsert(voucherTip);
     }

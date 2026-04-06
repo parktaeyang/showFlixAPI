@@ -9,5 +9,9 @@ public interface VoucherTipRepository {
 
     List<VoucherTip> findByDate(String date);
 
+    List<VoucherTip> findByYearMonth(String yearMonth);
+
+    List<VoucherTip> findByMonth(String startDate, String endDate);
+
     void upsert(VoucherTip voucherTip);
 }

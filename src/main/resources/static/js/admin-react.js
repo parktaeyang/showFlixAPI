@@ -34,7 +34,7 @@ const e = React.createElement;
 
 const FIXED_TABS = [
     { key: 'annual-calendar', label: '연간일정' },
-    { key: 'accounts',        label: '계정/복지' },
+    { key: 'accounts',        label: '계정' },
     { key: 'special',         label: '특수예약' },
     { key: 'angel-cancel',    label: '엔젤쇼취소' },
     { key: 'partners',        label: '협력업체' },
@@ -46,16 +46,20 @@ const FIXED_TABS = [
 
 const MONTHLY_TABS = [
     { key: 'work-diary', label: '업무일지' },
-    { key: 'actor',      label: '배우' },
     { key: 'voucher',    label: '바우처' },
     { key: 'tip',        label: '팁' },
-    { key: 'staff',      label: '스탭' },
-    { key: 'daily',      label: '일일' },
+    { key: 'staff',      label: '출근시간 관리' },
+    { key: 'daily',      label: '일일', hidden: true },
 ];
 
 const ALL_TAB_KEYS = new Set([
     ...FIXED_TABS.map(t => t.key),
     ...MONTHLY_TABS.map(t => t.key),
+]);
+
+const VISIBLE_TAB_KEYS = new Set([
+    ...FIXED_TABS.map(t => t.key),
+    ...MONTHLY_TABS.filter(t => !t.hidden).map(t => t.key),
 ]);
 
 const MONTHLY_TAB_KEYS = new Set(MONTHLY_TABS.map(t => t.key));
@@ -201,7 +205,7 @@ function TabBar({ activeTab, onTabChange }) {
         e('div', { className: 'admin-tab-group' },
             e('span', { className: 'admin-tab-group-label monthly' }, '월별'),
             e('div', { className: 'admin-tab-group-tabs' },
-                MONTHLY_TABS.map(tab =>
+                MONTHLY_TABS.filter(tab => !tab.hidden).map(tab =>
                     e('button', {
                         key: tab.key,
                         className: 'admin-tab' + (activeTab === tab.key ? ' active' : ''),
@@ -976,162 +980,298 @@ function SpecialReservationTab() {
 // ════════════════════════════════════════════════════════════════════
 // VoucherTipRow
 // ════════════════════════════════════════════════════════════════════
-function VoucherTipRow({ entry, mode, onChangeVoucher, onChangeTip }) {
-    const roleDisplay = getRoleDisplay(entry.role);
+// ════════════════════════════════════════════════════════════════════
+// VtCell - 바우처/팁 셀 입력 컴포넌트 (SsCell 패턴)
+// ════════════════════════════════════════════════════════════════════
 
-    const showVoucher = mode === 'all' || mode === 'voucher';
-    const showTip = mode === 'all' || mode === 'tip';
+function VtCell({ userId, dateKey, value, isChanged, mode, onCellChange }) {
+    const [editing, setEditing] = React.useState(false);
+    const [inputVal, setInputVal] = React.useState(value > 0 ? String(value) : '');
+    const inputRef = React.useRef(null);
 
-    return e('div', { className: 'voucher-row' },
-        e('div', { className: 'voucher-row-info' },
-            e('span', { className: 'voucher-row-name' }, entry.userName),
-            roleDisplay && e('span', { className: 'badge badge-role' }, roleDisplay)
-        ),
-        e('div', { className: 'voucher-row-inputs' },
-            showVoucher && e('div', { className: 'voucher-input-group' },
-                e('label', { className: 'voucher-input-label' }, '바우처'),
-                e('div', { className: 'voucher-input-wrap' },
-                    e('input', {
-                        className: 'voucher-input',
-                        type: 'number',
-                        min: '0',
-                        step: '1',
-                        value: entry.voucher,
-                        onChange: ev => onChangeVoucher(entry.userId, Number(ev.target.value) || 0),
-                    }),
-                    e('span', { className: 'voucher-input-unit' }, '개')
+    React.useEffect(() => {
+        if (!editing) {
+            setInputVal(value > 0 ? String(value) : '');
+        }
+    }, [value, editing]);
+
+    function handleEmptyClick() {
+        setEditing(true);
+        setInputVal('');
+        setTimeout(() => inputRef.current && inputRef.current.focus(), 0);
+    }
+
+    function handleBlur() {
+        setEditing(false);
+        const trimmed = inputVal.trim();
+        let validated = 0;
+        if (trimmed !== '') {
+            const num = parseInt(trimmed, 10);
+            if (!isNaN(num) && num > 0) validated = num;
+        }
+        setInputVal(validated > 0 ? String(validated) : '');
+        onCellChange(userId, dateKey, validated);
+    }
+
+    function handleKeyDown(ev) {
+        if (ev.key === 'Enter') ev.target.blur();
+        if (ev.key === 'Escape') {
+            setInputVal(value > 0 ? String(value) : '');
+            setEditing(false);
+        }
+    }
+
+    function handleInputChange(ev) {
+        const val = ev.target.value.replace(/[^0-9]/g, '');
+        setInputVal(val);
+    }
+
+    if ((!value || value === 0) && !editing) {
+        return e('span', {
+            className: 'ss-cell-empty',
+            onClick: handleEmptyClick,
+            title: '클릭하여 입력',
+        }, '-');
+    }
+
+    return e('input', {
+        ref: inputRef,
+        className: 'ss-cell-input',
+        type: 'text',
+        inputMode: 'numeric',
+        value: editing ? inputVal : (value > 0 ? String(value) : ''),
+        onChange: handleInputChange,
+        onFocus: () => { setEditing(true); setInputVal(value > 0 ? String(value) : ''); },
+        onBlur: handleBlur,
+        onKeyDown: handleKeyDown,
+        placeholder: '',
+    });
+}
+
+// ════════════════════════════════════════════════════════════════════
+// VtTable - 바우처/팁 엑셀형 그리드 테이블 (SsTable 패턴)
+// 행=날짜(1~31), 열=배우별 바우처 또는 팁 입력
+// ════════════════════════════════════════════════════════════════════
+
+function VtTable({ year, month, mode, actors, gridData, changes, onCellChange }) {
+    const field = mode; // 'voucher' | 'tip'
+    const daysInMonth = getDaysInMonth(year, month);
+    const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+    if (!actors || actors.length === 0) {
+        return e('div', { className: 'ss-empty' }, '배우 데이터가 없습니다.');
+    }
+
+    // gridData 구조: date → (userId → {voucher, tip})
+    return e('div', { className: 'ss-table-wrap' },
+        e('table', { className: 'ss-table' },
+            e('thead', null,
+                e('tr', null,
+                    e('th', { className: 'ss-date-col' }, '날짜'),
+                    ...actors.map(actor =>
+                        e('th', { key: actor.userId, className: 'ss-user-col' }, actor.userName)
+                    ),
+                    e('th', { className: 'ss-total-col ss-group-border-left' }, '합계')
                 )
             ),
-            showTip && e('div', { className: 'voucher-input-group' },
-                e('label', { className: 'voucher-input-label' }, '팁'),
-                e('div', { className: 'voucher-input-wrap' },
-                    e('input', {
-                        className: 'voucher-input',
-                        type: 'text',
-                        inputMode: 'numeric',
-                        value: entry.tip > 0 ? entry.tip.toLocaleString('ko-KR') : '',
-                        placeholder: '0',
-                        onChange: ev => {
-                            const digits = ev.target.value.replace(/[^0-9]/g, '');
-                            onChangeTip(entry.userId, digits === '' ? 0 : parseInt(digits, 10));
-                        },
-                    }),
-                    e('span', { className: 'voucher-input-unit' }, '원')
-                )
+            e('tbody', null,
+                days.map(d => {
+                    const dk = dateStr(year, month, d);
+                    const dow = getDayOfWeekIdx(year, month, d);
+                    const label = `${d}일(${DAY_OF_WEEK_KR[dow]})`;
+                    let dayTotal = 0;
+                    const dateMap = (gridData && gridData[dk]) || {};
+
+                    const actorCells = actors.map(actor => {
+                        const cellData = dateMap[actor.userId] || {};
+                        const cellVal = cellData[field] || 0;
+                        const changed = changes.has(`${actor.userId}|${dk}`);
+                        dayTotal += cellVal;
+                        let tdCls = 'ss-user-col';
+                        if (changed) tdCls += ' ss-changed';
+                        return e('td', { key: actor.userId, className: tdCls },
+                            e(VtCell, {
+                                key: `${actor.userId}|${dk}`,
+                                userId: actor.userId, dateKey: dk,
+                                value: cellVal, isChanged: changed,
+                                mode: field,
+                                onCellChange,
+                            })
+                        );
+                    });
+
+                    let trCls = '';
+                    if (dow === 0) trCls = 'ss-sun-row';
+                    else if (dow === 6) trCls = 'ss-sat-row';
+
+                    return e('tr', { key: dk, className: trCls },
+                        e('td', { className: 'ss-date-col' }, label),
+                        ...actorCells,
+                        e('td', { className: 'ss-total-col ss-group-border-left' },
+                            dayTotal > 0 ? dayTotal.toLocaleString('ko-KR') : '-'
+                        )
+                    );
+                }),
+
+                // 합계 행
+                (() => {
+                    let grandTotal = 0;
+                    const actorTotalCells = actors.map(actor => {
+                        let userTotal = 0;
+                        days.forEach(d => {
+                            const dk = dateStr(year, month, d);
+                            const dateMap = (gridData && gridData[dk]) || {};
+                            const cellData = dateMap[actor.userId] || {};
+                            userTotal += cellData[field] || 0;
+                        });
+                        grandTotal += userTotal;
+                        return e('td', { key: actor.userId, className: 'ss-total-col' },
+                            userTotal > 0 ? userTotal.toLocaleString('ko-KR') : '-'
+                        );
+                    });
+                    return e('tr', { key: 'total', className: 'ss-total-row' },
+                        e('td', { className: 'ss-date-col ss-total-label' }, '합계'),
+                        ...actorTotalCells,
+                        e('td', { className: 'ss-total-col ss-grand-total ss-group-border-left' },
+                            grandTotal > 0 ? grandTotal.toLocaleString('ko-KR') : '-'
+                        )
+                    );
+                })()
             )
         )
     );
 }
 
 // ════════════════════════════════════════════════════════════════════
-// VoucherTipTabInner - 바우처/팁 공통 내부 컴포넌트
+// VoucherTipTabInner - 바우처/팁 엑셀형 테이블 (StaffTab 패턴)
 // mode: 'voucher' | 'tip'
+// API: GET /api/admin/voucher/monthly → {actors, data}
+//      POST /api/admin/voucher/monthly/save → [{userId, date, voucher, tip}]
 // ════════════════════════════════════════════════════════════════════
-function VoucherTipTabInner({ mode, year, month }) {
-    // 선택된 월의 첫날을 기본값으로
-    const defaultDate = `${year}-${String(month).padStart(2, '0')}-01`;
-    const [date, setDate]       = React.useState(defaultDate);
-    const [entries, setEntries] = React.useState([]);
-    const [loading, setLoading] = React.useState(false);
-    const [saving, setSaving]   = React.useState(false);
-    const [message, setMessage] = React.useState('');
-    const [isError, setIsError] = React.useState(false);
 
-    // 월이 바뀌면 날짜 초기화
+function VoucherTipTabInner({ mode, year, month }) {
+    const [actors, setActors] = React.useState([]);
+    const [gridData, setGridData] = React.useState({});
+    const [changes, setChanges] = React.useState(new Set());
+    const [loading, setLoading] = React.useState(false);
+    const [saving, setSaving] = React.useState(false);
+    const [toast, setToast] = React.useState(null);
+    const toastTimerRef = React.useRef(null);
+
     React.useEffect(() => {
-        setDate(`${year}-${String(month).padStart(2, '0')}-01`);
+        loadMonthData(year, month);
     }, [year, month]);
 
-    function loadData(d) {
+    async function loadMonthData(y, m) {
         setLoading(true);
-        setMessage('');
-        apiFetch('/api/admin/voucher?date=' + d)
-            .then(data => {
-                if (data) setEntries(data);
-            })
-            .catch(err => {
-                setIsError(true);
-                setMessage(err.message || '데이터 조회 실패');
-            })
-            .finally(() => setLoading(false));
+        try {
+            const result = await apiFetch(`/api/admin/voucher/monthly?year=${y}&month=${m}`);
+            if (!result) return;
+            setActors(result.actors || []);
+            setGridData(result.data || {});
+            setChanges(new Set());
+        } catch (err) {
+            showToast(err.message || '데이터 조회 실패', 'error');
+        } finally {
+            setLoading(false);
+        }
     }
 
-    React.useEffect(() => {
-        loadData(date);
-    }, [date]);
-
-    function updateEntry(userId, field, value) {
-        setEntries(prev => prev.map(entry =>
-            entry.userId === userId ? Object.assign({}, entry, { [field]: value }) : entry
-        ));
+    // gridData 구조: date → (userId → {voucher, tip})
+    function handleCellChange(userId, dateKey, value) {
+        setGridData(prev => {
+            const next = { ...prev };
+            if (!next[dateKey]) next[dateKey] = {};
+            const cellData = next[dateKey][userId] ? { ...next[dateKey][userId] } : { voucher: 0, tip: 0 };
+            cellData[mode] = value;
+            next[dateKey] = { ...next[dateKey], [userId]: cellData };
+            return next;
+        });
+        setChanges(prev => {
+            const next = new Set(prev);
+            next.add(`${userId}|${dateKey}`);
+            return next;
+        });
     }
 
     async function handleSave() {
-        setSaving(true);
-        setMessage('');
-        setIsError(false);
-        try {
-            await apiFetch('/api/admin/voucher/save', {
-                method: 'POST',
-                body: JSON.stringify({ date, entries }),
+        if (changes.size === 0) return;
+
+        const actorMap = {};
+        actors.forEach(a => { actorMap[a.userId] = a.userName; });
+
+        const items = [];
+        for (const key of changes) {
+            const [userId, dk] = key.split('|');
+            const dateMap = (gridData[dk] && gridData[dk][userId]) || { voucher: 0, tip: 0 };
+            items.push({
+                userId,
+                userName: actorMap[userId] || '',
+                date: dk,
+                voucher: dateMap.voucher || 0,
+                tip: dateMap.tip || 0,
             });
-            setIsError(false);
-            setMessage('저장되었습니다.');
+        }
+
+        setSaving(true);
+        try {
+            await apiFetch('/api/admin/voucher/monthly/save', {
+                method: 'POST',
+                body: JSON.stringify({ entries: items }),
+            });
+            setChanges(new Set());
+            showToast('저장되었습니다.', 'success');
         } catch (err) {
-            setIsError(true);
-            setMessage(err.message || '저장 실패');
+            showToast(err.message || '저장 실패', 'error');
         } finally {
             setSaving(false);
         }
     }
 
-    const totalVoucher = entries.reduce((sum, en) => sum + (en.voucher || 0), 0);
-    const totalTip     = entries.reduce((sum, en) => sum + (en.tip || 0), 0);
+    function handleExport() {
+        if (changes.size > 0 && !window.confirm('저장하지 않은 변경사항이 있습니다. 그대로 다운로드하시겠습니까?')) return;
+        window.location.href = `/api/admin/voucher/monthly/export?year=${year}&month=${month}`;
+    }
 
+    function showToast(message, type) {
+        if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+        setToast({ message, type });
+        toastTimerRef.current = setTimeout(() => setToast(null), 2800);
+    }
+
+    const totalChanges = changes.size;
     const modeLabel = mode === 'voucher' ? '바우처' : '팁';
+    const unit = mode === 'voucher' ? '개' : '원';
 
     return e('div', { className: 'admin-content voucher-content' },
-        e('div', { className: 'voucher-sticky-bar' },
-            e('input', {
-                className: 'form-input voucher-date-input',
-                type: 'date',
-                value: date,
-                onChange: ev => setDate(ev.target.value),
-            }),
+        // 액션바
+        e('div', { className: 'staff-action-bar' },
+            e('span', { className: 'admin-tab-group-label' }, `${year}년 ${month}월 ${modeLabel} (${unit})`),
+            totalChanges > 0 && e('span', { className: 'ss-changes-badge' }, `변경 ${totalChanges}건`),
             e('button', {
-                className: 'btn-save-voucher',
+                className: 'btn-sm btn-edit',
                 onClick: handleSave,
-                disabled: saving || entries.length === 0,
-            }, saving ? '저장 중...' : '저장')
+                disabled: saving || totalChanges === 0,
+                style: { padding: '8px 16px', fontSize: '0.85rem' },
+            }, saving ? '저장 중...' : '저장'),
+            e('button', {
+                className: 'btn-sm btn-pw',
+                onClick: handleExport,
+                disabled: saving,
+                style: { padding: '8px 16px', fontSize: '0.85rem' },
+            }, '엑셀 다운로드')
         ),
-        message && e('div', { className: 'msg ' + (isError ? 'msg-error' : 'msg-success'), style: { margin: '0 16px' } }, message),
+
+        // 테이블
         loading
-            ? e('div', { className: 'loading-text' }, '불러오는 중...')
-            : entries.length === 0
-                ? e('div', { className: 'loading-text' }, '해당 날짜에 출근자가 없습니다.')
-                : e('div', null,
-                    e('div', { className: 'list-header', style: { margin: '14px 16px 12px' } },
-                        e('div', { className: 'section-title' }, `출근자 ${modeLabel} 입력`)
-                    ),
-                    e('div', { className: 'voucher-table', style: { margin: '0 16px 16px' } },
-                        ...entries.map(entry =>
-                            e(VoucherTipRow, {
-                                key: entry.userId,
-                                entry,
-                                mode,
-                                onChangeVoucher: (uid, val) => updateEntry(uid, 'voucher', val),
-                                onChangeTip:     (uid, val) => updateEntry(uid, 'tip', val),
-                            })
-                        )
-                    ),
-                    e('div', { className: 'voucher-summary', style: { margin: '0 16px 24px' } },
-                        e('span', null, '합계'),
-                        e('div', { className: 'voucher-summary-amounts' },
-                            mode === 'voucher' && e('span', null, '바우처 ', e('strong', null, totalVoucher.toLocaleString('ko-KR') + '개')),
-                            mode === 'tip' && e('span', null, '팁 ', e('strong', null, totalTip.toLocaleString('ko-KR') + '원'))
-                        )
-                    )
-                )
+            ? e('div', { className: 'loading-text' }, '데이터를 불러오는 중...')
+            : e(VtTable, {
+                year, month, mode, actors, gridData, changes,
+                onCellChange: handleCellChange,
+            }),
+
+        // 토스트
+        toast && e('div', { className: `ss-toast ${toast.type || ''}` }, toast.message)
     );
 }
 
@@ -2587,7 +2727,7 @@ function AdminPage() {
     // URL 해시에서 초기 탭 복원
     const initialTab = (() => {
         const hash = window.location.hash.replace('#', '');
-        return ALL_TAB_KEYS.has(hash) ? hash : 'annual-calendar';
+        return VISIBLE_TAB_KEYS.has(hash) ? hash : 'annual-calendar';
     })();
 
     const [activeTab, setActiveTab] = React.useState(initialTab);
@@ -2623,7 +2763,7 @@ function AdminPage() {
     React.useEffect(() => {
         const onHashChange = () => {
             const tab = window.location.hash.replace('#', '');
-            if (ALL_TAB_KEYS.has(tab)) setActiveTab(tab);
+            if (VISIBLE_TAB_KEYS.has(tab)) setActiveTab(tab);
         };
         window.addEventListener('hashchange', onHashChange);
         return () => window.removeEventListener('hashchange', onHashChange);

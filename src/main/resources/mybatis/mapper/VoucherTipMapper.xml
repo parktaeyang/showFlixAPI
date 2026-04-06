@@ -20,6 +20,20 @@
         WHERE date = #{date}
     </select>
 
+    <!-- 월별 조회 (date = YYYY-MM-01 기준) -->
+    <select id="findByYearMonth" resultMap="VoucherTipResult">
+        SELECT id, date, user_id, user_name, voucher, tip
+        FROM sf_voucher_tip
+        WHERE date = #{yearMonth}
+    </select>
+
+    <!-- 월 범위 조회 (startDate ~ endDate) -->
+    <select id="findByMonth" resultMap="VoucherTipResult">
+        SELECT id, date, user_id, user_name, voucher, tip
+        FROM sf_voucher_tip
+        WHERE date BETWEEN #{startDate} AND #{endDate}
+    </select>
+
     <!-- 신규 삽입 또는 기존 row 업데이트 (upsert) -->
     <insert id="upsert">
         INSERT INTO sf_voucher_tip (date, user_id, user_name, voucher, tip)
