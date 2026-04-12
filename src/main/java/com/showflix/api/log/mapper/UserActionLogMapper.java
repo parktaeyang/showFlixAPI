@@ -22,4 +22,6 @@ public interface UserActionLogMapper {
                       @Param("action") String action,
                       @Param("startDate") String startDate,
                       @Param("endDate") String endDate);
+
+    int deleteOlderThan(@Param("cutoffDate") String cutoffDate);
 }
