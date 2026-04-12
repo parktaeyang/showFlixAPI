@@ -384,47 +384,27 @@ function AdminPopup({ date, attendees, roleOptions, onClose, onSaved }) {
         setConfirming(true);
         setMsg('');
         try {
-            // 1) 시간표 슬롯 저장
             const slotsPayload = DEFAULT_TIME_SLOTS
                 .map(ts => {
                     const checkedUsers = attendees
                         .filter(a => slotChecks[ts] && slotChecks[ts][a.userId])
                         .map(a => a.userName);
                     return { timeSlot: ts, theme: '', performer: checkedUsers.join(',') };
-                })
-                .filter(s => s.performer !== '');
+                });
 
-            const r1 = await fetch('/api/schedule/dates/time-slots/save', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'same-origin',
-                body: JSON.stringify({ date, slots: slotsPayload })
-            });
-            if (!r1.ok) throw new Error('시간표 저장 실패');
-
-            // 2) 역할/비고 저장
-            const rolesBody = attendees.map(a => ({
-                date,
+            const rolesPayload = attendees.map(a => ({
                 userId: a.userId,
                 role: roleMap[a.userId] || '',
                 remarks: remarksMap[a.userId] || ''
             }));
-            const r2 = await fetch('/api/schedule/dates/roles/save', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'same-origin',
-                body: JSON.stringify(rolesBody)
-            });
-            if (!r2.ok) throw new Error('역할 저장 실패');
 
-            // 3) 확정
-            const r3 = await fetch('/api/schedule/dates/confirm', {
+            const r = await fetch('/api/schedule/dates/confirm-all', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'same-origin',
-                body: JSON.stringify({ date, confirmed: 'Y' })
+                body: JSON.stringify({ date, slots: slotsPayload, roles: rolesPayload })
             });
-            if (!r3.ok) throw new Error('확정 처리 실패');
+            if (!r.ok) throw new Error('확정 처리 실패');
 
             setMsg('✓ 스케줄 확정 완료!');
             if (onSaved) onSaved();

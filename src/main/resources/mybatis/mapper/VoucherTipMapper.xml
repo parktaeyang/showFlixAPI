@@ -45,4 +45,24 @@
             updated_at = NOW()
     </insert>
 
+    <!-- voucher만 저장 (tip은 건드리지 않음) -->
+    <insert id="upsertVoucher">
+        INSERT INTO sf_voucher_tip (date, user_id, user_name, voucher, tip)
+        VALUES (#{date}, #{userId}, #{userName}, #{voucher}, 0)
+        ON DUPLICATE KEY UPDATE
+            user_name  = VALUES(user_name),
+            voucher    = VALUES(voucher),
+            updated_at = NOW()
+    </insert>
+
+    <!-- tip만 저장 (voucher는 건드리지 않음) -->
+    <insert id="upsertTip">
+        INSERT INTO sf_voucher_tip (date, user_id, user_name, voucher, tip)
+        VALUES (#{date}, #{userId}, #{userName}, 0, #{tip})
+        ON DUPLICATE KEY UPDATE
+            user_name  = VALUES(user_name),
+            tip        = VALUES(tip),
+            updated_at = NOW()
+    </insert>
+
 </mapper>

@@ -38,7 +38,8 @@
             user_name = VALUES(user_name),
             open_hope = VALUES(open_hope),
             role = VALUES(role),
-            remarks = VALUES(remarks)
+            remarks = VALUES(remarks),
+            confirmed = VALUES(confirmed)
     </insert>
 
     <update id="updateRoleByDateAndUserId">

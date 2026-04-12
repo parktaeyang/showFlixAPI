@@ -14,4 +14,8 @@ public interface VoucherTipRepository {
     List<VoucherTip> findByMonth(String startDate, String endDate);
 
     void upsert(VoucherTip voucherTip);
+
+    void upsertVoucher(VoucherTip voucherTip);
+
+    void upsertTip(VoucherTip voucherTip);
 }

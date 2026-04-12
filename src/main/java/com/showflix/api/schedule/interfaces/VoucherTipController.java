@@ -89,10 +89,10 @@ public class VoucherTipController {
     @PostMapping("/monthly/save")
     public ResponseEntity<Map<String, String>> saveMonthly(
             @RequestBody MonthSaveRequest request) {
-        voucherTipService.saveBulk(request.entries());
+        voucherTipService.saveBulk(request.entries(), request.mode());
         return ResponseEntity.ok(Map.of("message", "저장되었습니다."));
     }
 
     record SaveRequest(String date, List<VoucherTipService.SaveEntry> entries) {}
-    record MonthSaveRequest(List<VoucherTipService.DailySaveEntry> entries) {}
+    record MonthSaveRequest(List<VoucherTipService.DailySaveEntry> entries, String mode) {}
 }

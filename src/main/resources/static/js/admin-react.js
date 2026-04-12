@@ -42,6 +42,7 @@ const FIXED_TABS = [
     { key: 'membership',      label: 'MEMBERSHIP' },
     { key: 'beer-select',     label: '맥주셀렉' },
     { key: 'xmas-seats',      label: '크리스마스석' },
+    { key: 'activity-log',    label: '활동 로그' },
 ];
 
 const MONTHLY_TABS = [
@@ -1162,6 +1163,18 @@ function VoucherTipTabInner({ mode, year, month }) {
         loadMonthData(year, month);
     }, [year, month]);
 
+    // mode 전환 시 미저장 알림 + changes 초기화
+    const prevModeRef = React.useRef(mode);
+    React.useEffect(() => {
+        if (prevModeRef.current !== mode) {
+            if (changes.size > 0) {
+                showToast('저장하지 않은 변경사항이 초기화되었습니다.', 'info');
+            }
+            setChanges(new Set());
+            prevModeRef.current = mode;
+        }
+    }, [mode]);
+
     async function loadMonthData(y, m) {
         setLoading(true);
         try {
@@ -1204,20 +1217,24 @@ function VoucherTipTabInner({ mode, year, month }) {
         for (const key of changes) {
             const [userId, dk] = key.split('|');
             const dateMap = (gridData[dk] && gridData[dk][userId]) || { voucher: 0, tip: 0 };
-            items.push({
+            const entry = {
                 userId,
                 userName: actorMap[userId] || '',
                 date: dk,
-                voucher: dateMap.voucher || 0,
-                tip: dateMap.tip || 0,
-            });
+            };
+            if (mode === 'voucher') {
+                entry.voucher = dateMap.voucher || 0;
+            } else {
+                entry.tip = dateMap.tip || 0;
+            }
+            items.push(entry);
         }
 
         setSaving(true);
         try {
             await apiFetch('/api/admin/voucher/monthly/save', {
                 method: 'POST',
-                body: JSON.stringify({ entries: items }),
+                body: JSON.stringify({ mode, entries: items }),
             });
             setChanges(new Set());
             showToast('저장되었습니다.', 'success');
@@ -2721,6 +2738,174 @@ function DailyTab({ year, month }) {
 }
 
 // ════════════════════════════════════════════════════════════════════
+// ActivityLogTab - 활동 로그 탭
+// API: GET /api/admin/user-action-logs?startDate&endDate&username&action&page&size
+// ════════════════════════════════════════════════════════════════════
+function ActivityLogTab() {
+    const today = todayStr();
+    const [startDate, setStartDate] = React.useState(today);
+    const [endDate, setEndDate] = React.useState(today);
+    const [username, setUsername] = React.useState('');
+    const [action, setAction] = React.useState('');
+    const [page, setPage] = React.useState(0);
+    const [size] = React.useState(50);
+    const [items, setItems] = React.useState([]);
+    const [total, setTotal] = React.useState(0);
+    const [loading, setLoading] = React.useState(false);
+    const [expandedId, setExpandedId] = React.useState(null);
+
+    React.useEffect(() => { loadData(); }, []);
+
+    async function loadData(p) {
+        const currentPage = p !== undefined ? p : page;
+        setLoading(true);
+        try {
+            // endDate +1일 보정 (당일 포함)
+            let adjustedEnd = '';
+            if (endDate) {
+                const d = new Date(endDate + 'T00:00:00');
+                d.setDate(d.getDate() + 1);
+                adjustedEnd = d.getFullYear() + '-' +
+                    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(d.getDate()).padStart(2, '0');
+            }
+
+            const params = new URLSearchParams();
+            if (startDate) params.set('startDate', startDate);
+            if (adjustedEnd) params.set('endDate', adjustedEnd);
+            if (username.trim()) params.set('username', username.trim());
+            if (action) params.set('action', action);
+            params.set('page', currentPage);
+            params.set('size', size);
+
+            const data = await apiFetch(`/api/admin/user-action-logs?${params.toString()}`);
+            if (data) {
+                setItems(data.items || []);
+                setTotal(data.total || 0);
+                setPage(currentPage);
+            }
+        } catch (err) {
+            console.error('활동 로그 조회 실패:', err);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    function handleSearch() {
+        setPage(0);
+        loadData(0);
+    }
+
+    function handlePrevPage() {
+        if (page > 0) loadData(page - 1);
+    }
+
+    function handleNextPage() {
+        const totalPages = Math.ceil(total / size);
+        if (page < totalPages - 1) loadData(page + 1);
+    }
+
+    function formatDateTime(dt) {
+        if (!dt) return '';
+        const d = new Date(dt);
+        return String(d.getMonth() + 1).padStart(2, '0') + '-' +
+            String(d.getDate()).padStart(2, '0') + ' ' +
+            String(d.getHours()).padStart(2, '0') + ':' +
+            String(d.getMinutes()).padStart(2, '0');
+    }
+
+    const totalPages = Math.ceil(total / size) || 1;
+
+    return e('div', { className: 'admin-content' },
+        // 필터 바
+        e('div', { className: 'staff-action-bar', style: { flexWrap: 'wrap', gap: '8px' } },
+            e('label', null, '기간: ',
+                e('input', { type: 'date', value: startDate, onChange: ev => setStartDate(ev.target.value),
+                    style: { fontSize: '0.85rem', padding: '4px' } }),
+                ' ~ ',
+                e('input', { type: 'date', value: endDate, onChange: ev => setEndDate(ev.target.value),
+                    style: { fontSize: '0.85rem', padding: '4px' } })
+            ),
+            e('label', null, '사용자ID: ',
+                e('input', { type: 'text', value: username, onChange: ev => setUsername(ev.target.value),
+                    placeholder: '전체', style: { width: '100px', fontSize: '0.85rem', padding: '4px' } })
+            ),
+            e('label', null, '액션: ',
+                e('select', { value: action, onChange: ev => setAction(ev.target.value),
+                    style: { fontSize: '0.85rem', padding: '4px' } },
+                    e('option', { value: '' }, '전체'),
+                    e('option', { value: 'CREATE' }, 'CREATE'),
+                    e('option', { value: 'UPDATE' }, 'UPDATE'),
+                    e('option', { value: 'DELETE' }, 'DELETE'),
+                    e('option', { value: 'FAILED' }, 'FAILED')
+                )
+            ),
+            e('button', { className: 'btn-sm btn-edit', onClick: handleSearch,
+                style: { padding: '6px 16px', fontSize: '0.85rem' } }, '조회')
+        ),
+
+        // 테이블
+        loading
+            ? e('div', { className: 'loading-text' }, '불러오는 중...')
+            : items.length === 0
+                ? e('div', { className: 'loading-text' }, '조회된 로그가 없습니다.')
+                : e('div', { className: 'ss-table-wrap' },
+                    e('table', { className: 'ss-table', style: { width: '100%' } },
+                        e('thead', null,
+                            e('tr', null,
+                                e('th', { style: { width: '100px' } }, '시각'),
+                                e('th', { style: { width: '80px' } }, '사용자'),
+                                e('th', { style: { width: '70px' } }, '액션'),
+                                e('th', { style: { width: '120px' } }, '대상'),
+                                e('th', null, '설명')
+                            )
+                        ),
+                        e('tbody', null,
+                            items.flatMap(item => {
+                                const isExpanded = expandedId === item.id;
+                                const failStyle = item.action === 'FAILED'
+                                    ? { background: '#fef2f2', color: '#dc2626' }
+                                    : undefined;
+                                const rows = [
+                                    e('tr', {
+                                        key: item.id,
+                                        style: Object.assign({}, failStyle, { cursor: item.requestData ? 'pointer' : 'default' }),
+                                        onClick: () => item.requestData && setExpandedId(isExpanded ? null : item.id)
+                                    },
+                                        e('td', null, formatDateTime(item.createdAt)),
+                                        e('td', null, item.userName || item.username),
+                                        e('td', null, item.action),
+                                        e('td', null, item.targetTable),
+                                        e('td', { style: { textAlign: 'left', whiteSpace: 'normal', wordBreak: 'break-all' } },
+                                            (item.description || ''),
+                                            item.requestData ? e('span', { style: { marginLeft: '6px', color: '#6b7280', fontSize: '0.75rem' } }, isExpanded ? '▲' : '▼') : null)
+                                    )
+                                ];
+                                if (isExpanded && item.requestData) {
+                                    rows.push(e('tr', { key: item.id + '-detail' },
+                                        e('td', { colSpan: 5, style: { textAlign: 'left', padding: '8px 12px', background: '#f9fafb', whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: '0.8rem', fontFamily: 'monospace', color: '#374151' } },
+                                            item.requestData)
+                                    ));
+                                }
+                                return rows;
+                            })
+                        )
+                    )
+                ),
+
+        // 페이징
+        !loading && total > 0 && e('div', {
+            style: { display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', padding: '12px 0', fontSize: '0.85rem' }
+        },
+            e('button', { className: 'btn-sm btn-pw', onClick: handlePrevPage, disabled: page === 0 }, '이전'),
+            e('span', null, `${page + 1} / ${totalPages}`),
+            e('button', { className: 'btn-sm btn-pw', onClick: handleNextPage, disabled: page >= totalPages - 1 }, '다음'),
+            e('span', { style: { color: '#888' } }, `(총 ${total}건)`)
+        )
+    );
+}
+
+// ════════════════════════════════════════════════════════════════════
 // AdminPage - 최상위 컴포넌트
 // ════════════════════════════════════════════════════════════════════
 function AdminPage() {
@@ -2808,6 +2993,8 @@ function AdminPage() {
                 return e(GenericCrudTab, { config: BEER_SELECT_CONFIG });
             case 'xmas-seats':
                 return e(XmasSeatsTab);
+            case 'activity-log':
+                return e(ActivityLogTab);
 
             // ── 월별 탭 ──
             case 'work-diary':

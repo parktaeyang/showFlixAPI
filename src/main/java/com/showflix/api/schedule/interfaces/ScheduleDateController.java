@@ -8,6 +8,7 @@ import com.showflix.api.schedule.application.AdminNoteService;
 import com.showflix.api.schedule.application.CalendarExcelService;
 import com.showflix.api.schedule.application.ScheduleTimeSlotService;
 import com.showflix.api.schedule.application.SelectedDateService;
+import com.showflix.api.schedule.application.command.ConfirmAllCommand;
 import com.showflix.api.schedule.application.command.ConfirmScheduleCommand;
 import com.showflix.api.schedule.application.command.MonthQueryCommand;
 import com.showflix.api.schedule.application.command.SaveSelectedDatesCommand;
@@ -197,6 +198,31 @@ public class ScheduleDateController {
     }
 
     /**
+     * 스케줄 통합 확정 (시간표 저장 + 역할 저장 + 확정 처리를 단일 트랜잭션으로)
+     * POST /api/schedule/dates/confirm-all
+     * 요청 본문: { "date": "2026-04-11", "slots": [...], "roles": [...] }
+     */
+    @PostMapping("/confirm-all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> confirmAll(@RequestBody ConfirmAllPayload payload) {
+        if (payload.date() == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        List<ConfirmAllCommand.SlotItem> slots = payload.slots() == null
+                ? List.of()
+                : payload.slots().stream()
+                    .map(s -> new ConfirmAllCommand.SlotItem(s.timeSlot(), s.theme(), s.performer()))
+                    .toList();
+        List<ConfirmAllCommand.RoleItem> roles = payload.roles() == null
+                ? List.of()
+                : payload.roles().stream()
+                    .map(r -> new ConfirmAllCommand.RoleItem(r.userId(), r.role(), r.remarks()))
+                    .toList();
+        timeSlotService.confirmAll(new ConfirmAllCommand(payload.date(), slots, roles));
+        return ResponseEntity.ok().build();
+    }
+
+    /**
      * 출근자 역할/비고 저장 (관리자 팝업)
      * POST /api/schedule/dates/roles/save
      * 요청 본문: [ { "date": "2025-02-15", "userId": "user1", "role": "MC", "remarks": "비고" } ]
@@ -323,6 +349,12 @@ public class ScheduleDateController {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record ConfirmPayload(String date, String confirmed) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record ConfirmAllPayload(String date, List<SlotItem> slots, List<ConfirmAllRoleItem> roles) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record ConfirmAllRoleItem(String userId, String role, String remarks) {}
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record RoleUpdatePayload(String date, String userId, String role, String remarks) {}

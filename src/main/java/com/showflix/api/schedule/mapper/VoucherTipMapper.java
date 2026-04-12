@@ -19,4 +19,8 @@ public interface VoucherTipMapper {
     List<VoucherTip> findByMonth(@Param("startDate") String startDate, @Param("endDate") String endDate);
 
     void upsert(VoucherTip voucherTip);
+
+    void upsertVoucher(VoucherTip voucherTip);
+
+    void upsertTip(VoucherTip voucherTip);
 }

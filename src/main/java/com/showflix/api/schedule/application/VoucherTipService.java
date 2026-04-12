@@ -120,9 +120,13 @@ public class VoucherTipService {
 
     /**
      * 월별 그리드 일괄 저장 (bulk upsert) - 각 엔트리에 date 포함
+     * mode에 따라 voucher만 또는 tip만 업데이트
      */
     @Transactional
-    public void saveBulk(List<DailySaveEntry> entries) {
+    public void saveBulk(List<DailySaveEntry> entries, String mode) {
+        if (mode == null || (!"voucher".equals(mode) && !"tip".equals(mode))) {
+            throw new IllegalArgumentException("mode는 'voucher' 또는 'tip'이어야 합니다.");
+        }
         for (DailySaveEntry entry : entries) {
             VoucherTip vt = new VoucherTip();
             vt.setDate(entry.date());
@@ -130,7 +134,11 @@ public class VoucherTipService {
             vt.setUserName(entry.userName());
             vt.setVoucher(entry.voucher());
             vt.setTip(entry.tip());
-            voucherTipRepository.upsert(vt);
+            if ("voucher".equals(mode)) {
+                voucherTipRepository.upsertVoucher(vt);
+            } else {
+                voucherTipRepository.upsertTip(vt);
+            }
         }
     }
 

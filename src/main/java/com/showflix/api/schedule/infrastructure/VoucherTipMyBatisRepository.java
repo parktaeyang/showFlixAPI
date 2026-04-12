@@ -38,4 +38,14 @@ public class VoucherTipMyBatisRepository implements VoucherTipRepository {
     public void upsert(VoucherTip voucherTip) {
         voucherTipMapper.upsert(voucherTip);
     }
+
+    @Override
+    public void upsertVoucher(VoucherTip voucherTip) {
+        voucherTipMapper.upsertVoucher(voucherTip);
+    }
+
+    @Override
+    public void upsertTip(VoucherTip voucherTip) {
+        voucherTipMapper.upsertTip(voucherTip);
+    }
 }
