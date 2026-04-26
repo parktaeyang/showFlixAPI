@@ -1247,7 +1247,7 @@ function VoucherTipTabInner({ mode, year, month }) {
 
     function handleExport() {
         if (changes.size > 0 && !window.confirm('저장하지 않은 변경사항이 있습니다. 그대로 다운로드하시겠습니까?')) return;
-        window.location.href = `/api/admin/voucher/monthly/export?year=${year}&month=${month}`;
+        window.location.href = `/api/admin/voucher/monthly/export?year=${year}&month=${month}&mode=${mode}`;
     }
 
     function showToast(message, type) {

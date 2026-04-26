@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -65,15 +64,20 @@ public class VoucherTipController {
     }
 
     /**
-     * 월별 바우처/팁 엑셀 다운로드
-     * GET /api/admin/voucher/monthly/export?year=2026&month=4
+     * 월별 바우처 또는 팁 엑셀 다운로드
+     * GET /api/admin/voucher/monthly/export?year=2026&month=4&mode=voucher
+     * GET /api/admin/voucher/monthly/export?year=2026&month=4&mode=tip
      */
     @GetMapping("/monthly/export")
     public ResponseEntity<byte[]> exportMonthly(
-            @RequestParam int year, @RequestParam int month) {
+            @RequestParam int year, @RequestParam int month, @RequestParam String mode) {
+        if (!"voucher".equals(mode) && !"tip".equals(mode)) {
+            return ResponseEntity.badRequest().build();
+        }
         VoucherTipService.MonthResult result = voucherTipService.getMonthData(year, month);
-        byte[] excelData = voucherTipService.exportToExcel(year, month, result);
-        String filename = year + "년_" + month + "월_바우처팁.xlsx";
+        byte[] excelData = voucherTipService.exportToExcel(year, month, result, mode);
+        String menuLabel = "voucher".equals(mode) ? "바우처" : "팁";
+        String filename = year + "년_" + month + "월_" + menuLabel + ".xlsx";
         String encodedFilename = URLEncoder.encode(filename, StandardCharsets.UTF_8).replace("+", "%20");
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encodedFilename)

@@ -143,25 +143,23 @@ public class VoucherTipService {
     }
 
     /**
-     * 월별 바우처/팁 엑셀 생성 (그리드 형식: 날짜 × 배우)
-     * ScheduleSummaryExcelService 패턴 참고
+     * 월별 바우처 또는 팁 엑셀 생성 (mode: "voucher" | "tip")
      */
-    public byte[] exportToExcel(int year, int month, MonthResult result) {
+    public byte[] exportToExcel(int year, int month, MonthResult result, String mode) {
+        boolean isVoucher = "voucher".equals(mode);
         List<ActorInfo> actors = result.actors();
         Map<String, Map<String, VoucherTipCell>> data = result.data();
         int daysInMonth = result.daysInMonth();
 
-        // 컬럼 배치: 날짜 | 배우1(V) | 배우1(T) | 배우2(V) | 배우2(T) | ... | 합계(V) | 합계(T)
-        int actorColCount = actors.size() * 2; // 바우처+팁 각각
-        int totalVCol = 1 + actorColCount;
-        int totalTCol = totalVCol + 1;
-        int lastCol = totalTCol;
+        // 컬럼 배치: 날짜 | 배우1 | 배우2 | ... | 합계
+        int totalCol = 1 + actors.size();
+        int lastCol = totalCol;
+        int[] actorTotals = new int[actors.size()];
 
-        int[] actorVoucherTotals = new int[actors.size()];
-        int[] actorTipTotals = new int[actors.size()];
+        String menuLabel = isVoucher ? "바우처" : "팁";
 
         try (XSSFWorkbook workbook = new XSSFWorkbook()) {
-            Sheet sheet = workbook.createSheet(year + "년 " + month + "월 바우처/팁");
+            Sheet sheet = workbook.createSheet(year + "년 " + month + "월 " + menuLabel);
             sheet.createFreezePane(1, 2);
 
             // ── 스타일 ─────────────────────────────────
@@ -227,7 +225,7 @@ public class VoucherTipService {
             Row titleRow = sheet.createRow(rowNum++);
             titleRow.setHeightInPoints(22);
             Cell titleCell = titleRow.createCell(0);
-            titleCell.setCellValue(year + "년 " + month + "월 바우처/팁");
+            titleCell.setCellValue(year + "년 " + month + "월 " + menuLabel);
             titleCell.setCellStyle(titleStyle);
             sheet.addMergedRegion(new org.apache.poi.ss.util.CellRangeAddress(0, 0, 0, lastCol));
 
@@ -240,28 +238,18 @@ public class VoucherTipService {
             dateHeader.setCellStyle(headerStyle);
 
             for (int i = 0; i < actors.size(); i++) {
-                Cell vCell = headerRow.createCell(1 + i * 2);
-                vCell.setCellValue(actors.get(i).userName() + "(V)");
-                vCell.setCellStyle(headerStyle);
-
-                Cell tCell = headerRow.createCell(1 + i * 2 + 1);
-                tCell.setCellValue(actors.get(i).userName() + "(T)");
-                tCell.setCellStyle(headerStyle);
+                Cell actorCell = headerRow.createCell(1 + i);
+                actorCell.setCellValue(actors.get(i).userName());
+                actorCell.setCellStyle(headerStyle);
             }
 
-            Cell totalVHeader = headerRow.createCell(totalVCol);
-            totalVHeader.setCellValue("합계(V)");
-            totalVHeader.setCellStyle(totalStyle);
-
-            Cell totalTHeader = headerRow.createCell(totalTCol);
-            totalTHeader.setCellValue("합계(T)");
-            totalTHeader.setCellStyle(totalStyle);
+            Cell totalHeader = headerRow.createCell(totalCol);
+            totalHeader.setCellValue("합계");
+            totalHeader.setCellStyle(totalStyle);
 
             // ── 데이터 행 (날짜별) ───────────────────
             LocalDate firstDay = LocalDate.of(year, month, 1);
-            int grandVoucher = 0;
-            int grandTip = 0;
-
+            int grandTotal = 0;
             String[] DOW_KR = {"일", "월", "화", "수", "목", "금", "토"};
 
             for (int d = 1; d <= daysInMonth; d++) {
@@ -269,7 +257,7 @@ public class VoucherTipService {
                 dataRow.setHeightInPoints(18);
 
                 LocalDate date = firstDay.withDayOfMonth(d);
-                int dowIdx = date.getDayOfWeek().getValue() % 7; // 일=0
+                int dowIdx = date.getDayOfWeek().getValue() % 7;
                 String label = d + "일(" + DOW_KR[dowIdx] + ")";
                 String dateStr = String.format("%04d-%02d-%02d", year, month, d);
 
@@ -277,43 +265,30 @@ public class VoucherTipService {
                 dateCell.setCellValue(label);
                 dateCell.setCellStyle(dateStyle);
 
-                int dayVoucher = 0;
-                int dayTip = 0;
+                int dayTotal = 0;
 
                 for (int i = 0; i < actors.size(); i++) {
                     Map<String, VoucherTipCell> dateMap = data.getOrDefault(dateStr, Map.of());
                     VoucherTipCell cell = dateMap.get(actors.get(i).userId());
+                    Cell actorCell = dataRow.createCell(1 + i);
 
-                    Cell vCell = dataRow.createCell(1 + i * 2);
-                    Cell tCell = dataRow.createCell(1 + i * 2 + 1);
-
-                    if (cell != null && (cell.voucher() != 0 || cell.tip() != 0)) {
-                        vCell.setCellValue(cell.voucher());
-                        vCell.setCellStyle(dataStyle);
-                        tCell.setCellValue(cell.tip());
-                        tCell.setCellStyle(dataStyle);
-                        dayVoucher += cell.voucher();
-                        dayTip += cell.tip();
-                        actorVoucherTotals[i] += cell.voucher();
-                        actorTipTotals[i] += cell.tip();
+                    int value = cell == null ? 0 : (isVoucher ? cell.voucher() : cell.tip());
+                    if (value != 0) {
+                        actorCell.setCellValue(value);
+                        actorCell.setCellStyle(dataStyle);
+                        dayTotal += value;
+                        actorTotals[i] += value;
                     } else {
-                        vCell.setCellValue("-");
-                        vCell.setCellStyle(emptyStyle);
-                        tCell.setCellValue("-");
-                        tCell.setCellStyle(emptyStyle);
+                        actorCell.setCellValue("-");
+                        actorCell.setCellStyle(emptyStyle);
                     }
                 }
 
-                grandVoucher += dayVoucher;
-                grandTip += dayTip;
+                grandTotal += dayTotal;
 
-                Cell totalVCell = dataRow.createCell(totalVCol);
-                totalVCell.setCellValue(dayVoucher);
-                totalVCell.setCellStyle(totalStyle);
-
-                Cell totalTCell = dataRow.createCell(totalTCol);
-                totalTCell.setCellValue(dayTip);
-                totalTCell.setCellStyle(totalStyle);
+                Cell totalCell = dataRow.createCell(totalCol);
+                totalCell.setCellValue(dayTotal);
+                totalCell.setCellStyle(totalStyle);
             }
 
             // ── 합계 행 ──────────────────────────────
@@ -325,30 +300,21 @@ public class VoucherTipService {
             totalLabel.setCellStyle(totalStyle);
 
             for (int i = 0; i < actors.size(); i++) {
-                Cell vCell = totalRow.createCell(1 + i * 2);
-                vCell.setCellValue(actorVoucherTotals[i]);
-                vCell.setCellStyle(totalStyle);
-
-                Cell tCell = totalRow.createCell(1 + i * 2 + 1);
-                tCell.setCellValue(actorTipTotals[i]);
-                tCell.setCellStyle(totalStyle);
+                Cell actorCell = totalRow.createCell(1 + i);
+                actorCell.setCellValue(actorTotals[i]);
+                actorCell.setCellStyle(totalStyle);
             }
 
-            Cell grandVCell = totalRow.createCell(totalVCol);
-            grandVCell.setCellValue(grandVoucher);
-            grandVCell.setCellStyle(totalStyle);
-
-            Cell grandTCell = totalRow.createCell(totalTCol);
-            grandTCell.setCellValue(grandTip);
-            grandTCell.setCellStyle(totalStyle);
+            Cell grandCell = totalRow.createCell(totalCol);
+            grandCell.setCellValue(grandTotal);
+            grandCell.setCellStyle(totalStyle);
 
             // ── 열 너비 설정 ─────────────────────────
-            sheet.setColumnWidth(0, 3200); // 날짜
-            for (int c = 1; c <= actorColCount; c++) {
+            sheet.setColumnWidth(0, 3200);
+            for (int c = 1; c <= actors.size(); c++) {
                 sheet.setColumnWidth(c, 2400);
             }
-            sheet.setColumnWidth(totalVCol, 2400);
-            sheet.setColumnWidth(totalTCol, 2400);
+            sheet.setColumnWidth(totalCol, 2400);
 
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             workbook.write(bos);
